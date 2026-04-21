@@ -25,3 +25,14 @@ export interface UpdateEmployeeRequest {
 export interface CreateEmployeeResponse {
   employeeId: string;
 }
+
+export const EMPLOYEE_ROLES = ['Admin', 'Manager', 'Inspektor', 'Recepcija'] as const;
+export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
+
+export interface GrantLoginAccessRequest {
+  role: EmployeeRole;
+}
+
+export interface GrantLoginAccessResponse {
+  applicationUserId: string;
+}

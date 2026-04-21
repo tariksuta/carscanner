@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { EmployeeStore } from '../store/employee.store';
 import { EmployeeService } from '../services/employee.service';
+import { EmployeeRole } from '../models/employee.model';
+import { GrantLoginDialogComponent } from '../components/grant-login-dialog.component';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
@@ -29,7 +31,7 @@ interface InspectionRow {
   selector: 'app-employee-detail-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, LucideAngularModule, StatCardComponent, StatusBadgeComponent],
+  imports: [DatePipe, LucideAngularModule, StatCardComponent, StatusBadgeComponent, GrantLoginDialogComponent],
   template: `
     <div class="cs-page">
       @if (store.selectedEmployee(); as emp) {
@@ -61,6 +63,11 @@ interface InspectionRow {
             <button type="button" class="cs-btn-ghost" (click)="onEdit()">
               <lucide-icon name="pencil" [size]="14" /> Uredi
             </button>
+            @if (!emp.applicationUserId && emp.isActive) {
+              <button type="button" class="cs-btn-ghost" (click)="onGrantLoginAccess()">
+                <lucide-icon name="key" [size]="14" /> Dodijeli login pristup
+              </button>
+            }
             @if (emp.isActive) {
               <button type="button" class="cs-btn-danger" (click)="onDeactivate()">
                 <lucide-icon name="user-x" [size]="14" /> Deaktiviraj
@@ -168,6 +175,13 @@ interface InspectionRow {
         <p class="cs-empty">Zaposlenik nije pronađen</p>
       }
     </div>
+
+    <app-grant-login-dialog
+      [open]="grantDialogOpen()"
+      [employeeName]="grantDialogEmployeeName()"
+      (confirm)="onGrantConfirm($event)"
+      (cancel)="onGrantCancel()"
+    />
   `,
   styles: [
     `
@@ -545,6 +559,25 @@ export class EmployeeDetailPageComponent implements OnInit {
 
   onDeactivate(): void {
     // TODO: backend ne podržava deactivate (UpdateEmployeeRequest nema IsActive)
+  }
+
+  readonly grantDialogOpen = signal(false);
+  readonly grantDialogEmployeeName = computed(() => {
+    const e = this.store.selectedEmployee();
+    return e ? `${e.firstName} ${e.lastName}` : '';
+  });
+
+  onGrantLoginAccess(): void {
+    this.grantDialogOpen.set(true);
+  }
+
+  onGrantConfirm(role: EmployeeRole): void {
+    this.grantDialogOpen.set(false);
+    this.store.grantLoginAccess({ employeeId: this.id(), role });
+  }
+
+  onGrantCancel(): void {
+    this.grantDialogOpen.set(false);
   }
 
   openInspection(id: string): void {

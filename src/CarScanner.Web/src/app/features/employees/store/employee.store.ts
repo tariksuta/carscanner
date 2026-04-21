@@ -4,7 +4,7 @@ import { withEntities, setAllEntities, upsertEntity } from '@ngrx/signals/entiti
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { pipe, switchMap, tap } from 'rxjs';
-import { Employee } from '../models/employee.model';
+import { Employee, EmployeeRole } from '../models/employee.model';
 import { EmployeeService } from '../services/employee.service';
 
 type EmployeeState = {
@@ -75,6 +75,20 @@ export const EmployeeStore = signalStore(
         tap(() => patchState(store, { isLoading: true, error: null })),
         switchMap((id) =>
           svc.getById(id).pipe(
+            tapResponse({
+              next: (emp) => patchState(store, upsertEntity(emp), { isLoading: false }),
+              error: (e: Error) => patchState(store, { isLoading: false, error: e.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    grantLoginAccess: rxMethod<{ employeeId: string; role: EmployeeRole }>(
+      pipe(
+        tap(() => patchState(store, { isLoading: true, error: null })),
+        switchMap(({ employeeId, role }) =>
+          svc.grantLoginAccess(employeeId, { role }).pipe(
+            switchMap(() => svc.getById(employeeId)),
             tapResponse({
               next: (emp) => patchState(store, upsertEntity(emp), { isLoading: false }),
               error: (e: Error) => patchState(store, { isLoading: false, error: e.message }),

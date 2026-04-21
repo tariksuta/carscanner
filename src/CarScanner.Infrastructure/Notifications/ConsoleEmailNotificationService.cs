@@ -128,4 +128,38 @@ public sealed class ConsoleEmailNotificationService(ILogger<ConsoleEmailNotifica
 
         return Task.CompletedTask;
     }
+
+    public Task SendEmployeeWelcomeAsync(
+        string recipientEmail,
+        string recipientName,
+        string temporaryPassword,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation(
+            """
+            ========== EMPLOYEE WELCOME EMAIL ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Dobrodošli u CarScanner
+
+            Poštovani {RecipientName},
+
+            Vaš korisnički nalog je kreiran.
+
+            Email: {RecipientEmail}
+            Privremena lozinka: {TemporaryPassword}
+
+            Preporučuje se da promijenite lozinku pri prvoj prijavi.
+
+            Srdačan pozdrav,
+            CarScanner Team
+            ============================================
+            """,
+            recipientEmail,
+            recipientName,
+            recipientName,
+            recipientEmail,
+            temporaryPassword);
+
+        return Task.CompletedTask;
+    }
 }

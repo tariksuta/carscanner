@@ -29,7 +29,7 @@ public static class DependencyInjection
 
         services.AddScoped<IFileStorageService, AzureBlobStorageService>();
 
-        services.AddScoped<IEmailNotificationService, ConsoleEmailNotificationService>();
+        services.AddEmailNotifications(configuration);
 
 		services.AddTokenGenerators(configuration);
 
@@ -41,6 +41,27 @@ public static class DependencyInjection
         else
         {
             services.AddScoped<IVehicleDamageAnalyzer, MockVehicleDamageAnalyzer>();
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddEmailNotifications(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services
+            .AddOptions<EmailOptions>()
+            .BindConfiguration(EmailOptions.SectionName);
+
+        var provider = configuration[$"{EmailOptions.SectionName}:Provider"];
+        if (string.Equals(provider, "Smtp", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IEmailNotificationService, SmtpEmailNotificationService>();
+        }
+        else
+        {
+            services.AddScoped<IEmailNotificationService, ConsoleEmailNotificationService>();
         }
 
         return services;

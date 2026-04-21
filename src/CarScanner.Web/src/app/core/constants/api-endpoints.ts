@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   EMPLOYEES: {
     BASE: '/employees',
     BY_ID: (id: string) => `/employees/${id}`,
+    LOGIN_ACCESS: (id: string) => `/employees/${id}/login-account`,
   },
   RENTALS: {
     BASE: '/rentals',

@@ -27,4 +27,10 @@ public interface IEmailNotificationService
         DateTime returnDate,
         bool hasDamages,
         CancellationToken cancellationToken = default);
+
+    Task SendEmployeeWelcomeAsync(
+        string recipientEmail,
+        string recipientName,
+        string temporaryPassword,
+        CancellationToken cancellationToken = default);
 }

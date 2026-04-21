@@ -3,7 +3,14 @@ import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { PagedResult, PaginationParams } from '../../../core/models/paged-result.model';
-import { CreateEmployeeRequest, CreateEmployeeResponse, Employee, UpdateEmployeeRequest } from '../models/employee.model';
+import {
+  CreateEmployeeRequest,
+  CreateEmployeeResponse,
+  Employee,
+  GrantLoginAccessRequest,
+  GrantLoginAccessResponse,
+  UpdateEmployeeRequest,
+} from '../models/employee.model';
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
@@ -28,5 +35,9 @@ export class EmployeeService {
 
   update(id: string, request: UpdateEmployeeRequest): Observable<void> {
     return this.api.put<void>(API_ENDPOINTS.EMPLOYEES.BY_ID(id), request);
+  }
+
+  grantLoginAccess(id: string, request: GrantLoginAccessRequest): Observable<GrantLoginAccessResponse> {
+    return this.api.post<GrantLoginAccessResponse>(API_ENDPOINTS.EMPLOYEES.LOGIN_ACCESS(id), request);
   }
 }

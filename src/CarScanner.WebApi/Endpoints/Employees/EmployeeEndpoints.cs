@@ -1,4 +1,5 @@
 using CarScanner.Application.Features.Employees.Commands.CreateEmployee;
+using CarScanner.Application.Features.Employees.Commands.GrantLoginAccess;
 using CarScanner.Application.Features.Employees.Commands.UpdateEmployee;
 using CarScanner.Application.Features.Employees.Queries.GetEmployeeById;
 using CarScanner.Application.Features.Employees.Queries.GetEmployees;
@@ -17,6 +18,7 @@ public static class EmployeeEndpoints
         group.MapGet("/{employeeId:guid}", GetEmployeeById);
         group.MapPost("/", CreateEmployee);
         group.MapPut("/{employeeId:guid}", UpdateEmployee);
+        group.MapPost("/{employeeId:guid}/login-account", GrantLoginAccess);
 
         return app;
     }
@@ -85,6 +87,21 @@ public static class EmployeeEndpoints
             () => Results.NoContent(),
             error => Results.BadRequest(error));
     }
+
+    private static async Task<IResult> GrantLoginAccess(
+        Guid employeeId,
+        GrantLoginAccessRequest request,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var command = new GrantEmployeeLoginAccessCommand(employeeId, request.Role);
+
+        var result = await sender.Send(command, cancellationToken);
+
+        return result.Match(
+            success => Results.Created($"/api/employees/{employeeId}/login-account", success),
+            error => Results.BadRequest(error));
+    }
 }
 
 public sealed record CreateEmployeeRequest(
@@ -97,3 +114,5 @@ public sealed record UpdateEmployeeRequest(
     string FirstName,
     string LastName,
     string? Phone);
+
+public sealed record GrantLoginAccessRequest(string? Role);
