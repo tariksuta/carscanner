@@ -15,6 +15,12 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
     public string Phone { get; private set; } = null!;
     public DriverLicense DriverLicense { get; private set; } = null!;
     public string? Address { get; private set; }
+    public string? City { get; private set; }
+    public DateOnly? BirthDate { get; private set; }
+    public string? Jmbg { get; private set; }
+    public bool IsVip { get; private set; }
+    public bool MarketingConsent { get; private set; }
+    public string? InternalNote { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
 
@@ -26,7 +32,13 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
         string email,
         string phone,
         DriverLicense driverLicense,
-        string? address) : base()
+        string? address,
+        string? city,
+        DateOnly? birthDate,
+        string? jmbg,
+        bool isVip,
+        bool marketingConsent,
+        string? internalNote) : base()
     {
         FirstName = firstName;
         LastName = lastName;
@@ -34,6 +46,12 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
         Phone = phone;
         DriverLicense = driverLicense;
         Address = address;
+        City = city;
+        BirthDate = birthDate;
+        Jmbg = jmbg;
+        IsVip = isVip;
+        MarketingConsent = marketingConsent;
+        InternalNote = internalNote;
     }
 
     public static Result<Client> Create(
@@ -44,7 +62,13 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
         string driverLicenseNumber,
         DateTime driverLicenseExpiry,
         string driverLicenseCountry,
-        string? address)
+        string? address,
+        string? city,
+        DateOnly? birthDate,
+        string? jmbg,
+        bool isVip,
+        bool marketingConsent,
+        string? internalNote)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Result.Failure<Client>(ClientDomainErrors.InvalidFirstName);
@@ -57,6 +81,10 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
 
         if (string.IsNullOrWhiteSpace(phone))
             return Result.Failure<Client>(ClientDomainErrors.InvalidPhone);
+
+        var normalizedJmbg = NormalizeJmbg(jmbg);
+        if (normalizedJmbg is not null && !JmbgRegex().IsMatch(normalizedJmbg))
+            return Result.Failure<Client>(ClientDomainErrors.InvalidJmbg);
 
         var driverLicenseResult = DriverLicense.Create(
             driverLicenseNumber,
@@ -72,14 +100,26 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
             email.Trim().ToLowerInvariant(),
             phone.Trim(),
             driverLicenseResult.Value,
-            address?.Trim());
+            address?.Trim(),
+            NormalizeOptional(city),
+            birthDate,
+            normalizedJmbg,
+            isVip,
+            marketingConsent,
+            NormalizeOptional(internalNote));
     }
 
     public Result Update(
         string firstName,
         string lastName,
         string phone,
-        string? address)
+        string? address,
+        string? city,
+        DateOnly? birthDate,
+        string? jmbg,
+        bool isVip,
+        bool marketingConsent,
+        string? internalNote)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Result.Failure(ClientDomainErrors.InvalidFirstName);
@@ -90,10 +130,20 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
         if (string.IsNullOrWhiteSpace(phone))
             return Result.Failure(ClientDomainErrors.InvalidPhone);
 
+        var normalizedJmbg = NormalizeJmbg(jmbg);
+        if (normalizedJmbg is not null && !JmbgRegex().IsMatch(normalizedJmbg))
+            return Result.Failure(ClientDomainErrors.InvalidJmbg);
+
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         Phone = phone.Trim();
         Address = address?.Trim();
+        City = NormalizeOptional(city);
+        BirthDate = birthDate;
+        Jmbg = normalizedJmbg;
+        IsVip = isVip;
+        MarketingConsent = marketingConsent;
+        InternalNote = NormalizeOptional(internalNote);
 
         return Result.Success();
     }
@@ -113,6 +163,15 @@ public sealed partial class Client : AggregateRoot, ITenantEntity
 
     public bool CanRent() => !DriverLicense.IsExpired();
 
+    private static string? NormalizeOptional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? NormalizeJmbg(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase)]
     private static partial Regex EmailRegex();
+
+    [GeneratedRegex(@"^\d{13}$")]
+    private static partial Regex JmbgRegex();
 }

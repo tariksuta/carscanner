@@ -19,6 +19,9 @@ public static class ClientDomainErrors
     public static readonly DomainError InvalidPhone =
         DomainError.Validation("Client.InvalidPhone", "Phone number is required.");
 
+    public static readonly DomainError InvalidJmbg =
+        DomainError.Validation("Client.InvalidJmbg", "JMBG must be exactly 13 digits.");
+
     public static readonly DomainError EmailAlreadyExists =
         new("Client.EmailAlreadyExists", "A client with this email already exists.");
 

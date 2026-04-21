@@ -27,7 +27,13 @@ public sealed class CreateClientCommandHandler(IClientRepository clientRepositor
             request.DriverLicenseNumber,
             request.DriverLicenseExpiry,
             request.DriverLicenseCountry,
-            request.Address);
+            request.Address,
+            request.City,
+            request.BirthDate,
+            request.Jmbg,
+            request.IsVip,
+            request.MarketingConsent,
+            request.InternalNote);
 
         if (clientResult.IsFailure)
             return Result.Failure<CreateClientCommandResult>(clientResult.Error);

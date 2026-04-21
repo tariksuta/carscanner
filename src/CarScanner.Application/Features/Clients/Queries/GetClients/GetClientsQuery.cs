@@ -18,5 +18,11 @@ public sealed record ClientDto(
     DateTime DriverLicenseExpiry,
     string DriverLicenseCountry,
     string? Address,
+    string? City,
+    DateOnly? BirthDate,
+    string? Jmbg,
+    bool IsVip,
+    bool MarketingConsent,
+    string? InternalNote,
     DateTime CreatedOnUtc,
     DateTime? ModifiedOnUtc);

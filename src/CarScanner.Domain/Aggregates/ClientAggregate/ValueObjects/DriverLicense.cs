@@ -23,6 +23,12 @@ public sealed class DriverLicense : ValueObject
                 DomainError.Validation("DriverLicense.EmptyNumber", "Driver license number cannot be empty."));
         }
 
+        if (number.Trim().Length != 9)
+        {
+            return Result.Failure<DriverLicense>(
+                DomainError.Validation("DriverLicense.InvalidNumberLength", "Driver license number must be exactly 9 characters."));
+        }
+
         if (expiryDate < DateTime.UtcNow.Date)
         {
             return Result.Failure<DriverLicense>(

@@ -40,6 +40,12 @@ public sealed class GetClientsQueryHandler(IClientRepository clientRepository)
                 c.DriverLicense.ExpiryDate,
                 c.DriverLicense.IssuingCountry,
                 c.Address,
+                c.City,
+                c.BirthDate,
+                c.Jmbg,
+                c.IsVip,
+                c.MarketingConsent,
+                c.InternalNote,
                 c.CreatedOnUtc,
                 c.ModifiedOnUtc))
             .ToList();

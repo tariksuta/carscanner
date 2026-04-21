@@ -20,10 +20,22 @@ interface ClientFormState {
   driverLicenseCountry: string;
   address: string;
   city: string;
-  vip: boolean;
-  marketing: boolean;
+  isVip: boolean;
+  marketingConsent: boolean;
   internalNote: string;
 }
+
+type RequiredField =
+  | 'firstName'
+  | 'lastName'
+  | 'email'
+  | 'phone'
+  | 'driverLicenseNumber'
+  | 'driverLicenseExpiry';
+
+const REQUIRED_MSG = 'Obavezno polje';
+const JMBG_MSG = 'JMBG mora imati tačno 13 cifara';
+const LICENSE_LEN_MSG = 'Vozačka dozvola mora imati tačno 9 karaktera';
 
 @Component({
   selector: 'app-client-form',
@@ -35,7 +47,7 @@ interface ClientFormState {
       [title]="mode() === 'edit' ? 'Uredi klijenta' : 'Dodaj klijenta'"
       [subtitle]="mode() === 'edit' ? 'Ažuriraj podatke o klijentu' : 'Unesi podatke za novog klijenta'"
       [submitLabel]="mode() === 'edit' ? 'Sačuvaj izmjene' : 'Dodaj klijenta'"
-      [submitDisabled]="!canSubmit() || submitting()"
+      [submitDisabled]="submitting()"
       [statusLabel]="mode() === 'edit' ? 'Izmjena' : null"
       statusVariant="info"
       (submitted)="submit()"
@@ -44,22 +56,22 @@ interface ClientFormState {
       <section class="cs-card cs-pad">
         <h3 class="cs-sect-title">Lični podaci</h3>
         <div class="cs-2col">
-          <app-form-field label="Ime" [required]="true">
+          <app-form-field label="Ime" [required]="true" [error]="errorFor('firstName')">
             <input type="text" [value]="state().firstName" (input)="upd('firstName', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="Prezime" [required]="true">
+          <app-form-field label="Prezime" [required]="true" [error]="errorFor('lastName')">
             <input type="text" [value]="state().lastName" (input)="upd('lastName', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="Email" [required]="true">
+          <app-form-field label="Email" [required]="true" [error]="errorFor('email')">
             <input type="email" [disabled]="mode() === 'edit'" [value]="state().email" (input)="upd('email', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="Telefon" [required]="true">
+          <app-form-field label="Telefon" [required]="true" [error]="errorFor('phone')">
             <input type="tel" data-mono="true" [value]="state().phone" (input)="upd('phone', $any($event.target).value)" />
           </app-form-field>
           <app-form-field label="Datum rođenja">
             <input type="date" [value]="state().birthDate" (input)="upd('birthDate', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="JMBG" hint="13 cifara">
+          <app-form-field label="JMBG" hint="13 cifara" [error]="jmbgError()">
             <input type="text" data-mono="true" maxlength="13" [value]="state().jmbg" (input)="upd('jmbg', $any($event.target).value)" />
           </app-form-field>
         </div>
@@ -68,10 +80,10 @@ interface ClientFormState {
       <section class="cs-card cs-pad">
         <h3 class="cs-sect-title">Identifikacija i adresa</h3>
         <div class="cs-2col">
-          <app-form-field label="Vozačka dozvola">
-            <input type="text" data-mono="true" [value]="state().driverLicenseNumber" (input)="upd('driverLicenseNumber', $any($event.target).value)" />
+          <app-form-field label="Vozačka dozvola" hint="9 karaktera" [required]="true" [error]="licenseNumberError()">
+            <input type="text" data-mono="true" maxlength="9" [value]="state().driverLicenseNumber" (input)="upd('driverLicenseNumber', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="Vrijedi do">
+          <app-form-field label="Vrijedi do" [required]="true" [error]="errorFor('driverLicenseExpiry')">
             <input type="date" [value]="state().driverLicenseExpiry" (input)="upd('driverLicenseExpiry', $any($event.target).value)" />
           </app-form-field>
           <app-form-field label="Adresa" class="cs-col-2">
@@ -80,7 +92,7 @@ interface ClientFormState {
           <app-form-field label="Grad">
             <input type="text" [value]="state().city" (input)="upd('city', $any($event.target).value)" />
           </app-form-field>
-          <app-form-field label="Država">
+          <app-form-field label="Država" [required]="true">
             <select [value]="state().driverLicenseCountry" (change)="upd('driverLicenseCountry', $any($event.target).value)">
               <option value="BA">Bosna i Hercegovina</option>
               <option value="HR">Hrvatska</option>
@@ -95,15 +107,15 @@ interface ClientFormState {
         <app-form-toggle
           label="VIP klijent"
           hint="Prioritetno rukovanje, popusti, dedicated manager"
-          [ngModel]="state().vip"
-          (ngModelChange)="upd('vip', $event)"
+          [ngModel]="state().isVip"
+          (ngModelChange)="upd('isVip', $event)"
         />
         <div class="cs-divider"></div>
         <app-form-toggle
           label="Marketing komunikacija"
           hint="Pristanak na email/SMS kampanje"
-          [ngModel]="state().marketing"
-          (ngModelChange)="upd('marketing', $event)"
+          [ngModel]="state().marketingConsent"
+          (ngModelChange)="upd('marketingConsent', $event)"
         />
         <div class="cs-divider"></div>
         <app-form-field label="Interna napomena" hint="Vidljivo samo tvom timu">
@@ -165,6 +177,7 @@ export class ClientFormComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly submitting = signal(false);
+  readonly submitted = signal(false);
 
   readonly state = signal<ClientFormState>({
     firstName: '',
@@ -178,15 +191,43 @@ export class ClientFormComponent implements OnInit {
     driverLicenseCountry: 'BA',
     address: '',
     city: '',
-    vip: false,
-    marketing: false,
+    isVip: false,
+    marketingConsent: false,
     internalNote: '',
   });
 
-  readonly canSubmit = computed(() => {
-    const s = this.state();
-    return !!s.firstName.trim() && !!s.lastName.trim() && !!s.email.trim() && !!s.phone.trim();
+  readonly jmbgError = computed(() => {
+    const jmbg = this.state().jmbg.trim();
+    if (!jmbg) return null;
+    return /^\d{13}$/.test(jmbg) ? null : JMBG_MSG;
   });
+
+  readonly licenseNumberError = computed(() => {
+    const num = this.state().driverLicenseNumber.trim();
+    if (!num) return this.submitted() ? REQUIRED_MSG : null;
+    return num.length === 9 ? null : LICENSE_LEN_MSG;
+  });
+
+  private readonly missingRequired = computed<Set<RequiredField>>(() => {
+    const s = this.state();
+    const missing = new Set<RequiredField>();
+    if (!s.firstName.trim()) missing.add('firstName');
+    if (!s.lastName.trim()) missing.add('lastName');
+    if (!s.email.trim()) missing.add('email');
+    if (!s.phone.trim()) missing.add('phone');
+    if (!s.driverLicenseNumber.trim()) missing.add('driverLicenseNumber');
+    if (!s.driverLicenseExpiry.trim()) missing.add('driverLicenseExpiry');
+    return missing;
+  });
+
+  readonly canSubmit = computed(() =>
+    this.missingRequired().size === 0 && !this.jmbgError() && !this.licenseNumberError(),
+  );
+
+  errorFor(field: RequiredField): string | null {
+    if (!this.submitted()) return null;
+    return this.missingRequired().has(field) ? REQUIRED_MSG : null;
+  }
 
   ngOnInit(): void {
     const c = this.client();
@@ -201,6 +242,12 @@ export class ClientFormComponent implements OnInit {
         driverLicenseExpiry: c.driverLicenseExpiry,
         driverLicenseCountry: c.driverLicenseCountry || 'BA',
         address: c.address ?? '',
+        city: c.city ?? '',
+        birthDate: c.birthDate ?? '',
+        jmbg: c.jmbg ?? '',
+        isVip: c.isVip ?? false,
+        marketingConsent: c.marketingConsent ?? false,
+        internalNote: c.internalNote ?? '',
       }));
     }
   }
@@ -210,6 +257,7 @@ export class ClientFormComponent implements OnInit {
   }
 
   submit(): void {
+    this.submitted.set(true);
     if (!this.canSubmit() || this.submitting()) return;
     const s = this.state();
 
@@ -222,6 +270,12 @@ export class ClientFormComponent implements OnInit {
         driverLicenseNumber: s.driverLicenseNumber,
         driverLicenseExpiry: s.driverLicenseExpiry,
         driverLicenseCountry: s.driverLicenseCountry,
+        city: s.city || undefined,
+        birthDate: s.birthDate || undefined,
+        jmbg: s.jmbg || undefined,
+        isVip: s.isVip,
+        marketingConsent: s.marketingConsent,
+        internalNote: s.internalNote || undefined,
       };
       this.submitting.set(true);
       this.svc.update(this.client()!.id, req).subscribe({
@@ -243,6 +297,12 @@ export class ClientFormComponent implements OnInit {
       driverLicenseExpiry: s.driverLicenseExpiry,
       driverLicenseCountry: s.driverLicenseCountry,
       address: s.address || undefined,
+      city: s.city || undefined,
+      birthDate: s.birthDate || undefined,
+      jmbg: s.jmbg || undefined,
+      isVip: s.isVip,
+      marketingConsent: s.marketingConsent,
+      internalNote: s.internalNote || undefined,
     };
     this.submitting.set(true);
     this.svc.create(req).subscribe({

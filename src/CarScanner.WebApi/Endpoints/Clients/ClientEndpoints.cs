@@ -62,7 +62,13 @@ public static class ClientEndpoints
             request.DriverLicenseNumber,
             request.DriverLicenseExpiry,
             request.DriverLicenseCountry,
-            request.Address);
+            request.Address,
+            request.City,
+            request.BirthDate,
+            request.Jmbg,
+            request.IsVip,
+            request.MarketingConsent,
+            request.InternalNote);
 
         var result = await sender.Send(command, cancellationToken);
 
@@ -84,7 +90,13 @@ public static class ClientEndpoints
             request.Address,
             request.DriverLicenseNumber,
             request.DriverLicenseExpiry,
-            request.DriverLicenseCountry);
+            request.DriverLicenseCountry,
+            request.City,
+            request.BirthDate,
+            request.Jmbg,
+            request.IsVip,
+            request.MarketingConsent,
+            request.InternalNote);
 
         var result = await sender.Send(command, cancellationToken);
 
@@ -102,7 +114,13 @@ public sealed record CreateClientRequest(
     string DriverLicenseNumber,
     DateTime DriverLicenseExpiry,
     string DriverLicenseCountry,
-    string? Address);
+    string? Address,
+    string? City,
+    DateOnly? BirthDate,
+    string? Jmbg,
+    bool IsVip,
+    bool MarketingConsent,
+    string? InternalNote);
 
 public sealed record UpdateClientRequest(
     string FirstName,
@@ -111,4 +129,10 @@ public sealed record UpdateClientRequest(
     string? Address,
     string DriverLicenseNumber,
     DateTime DriverLicenseExpiry,
-    string DriverLicenseCountry);
+    string DriverLicenseCountry,
+    string? City,
+    DateOnly? BirthDate,
+    string? Jmbg,
+    bool IsVip,
+    bool MarketingConsent,
+    string? InternalNote);
