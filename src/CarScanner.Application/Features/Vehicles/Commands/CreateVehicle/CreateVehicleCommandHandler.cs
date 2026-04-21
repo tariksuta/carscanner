@@ -26,7 +26,13 @@ public sealed class CreateVehicleCommandHandler(IVehicleRepository vehicleReposi
             request.LicensePlate,
             request.Vin,
             request.Color,
-            request.CurrentMileage);
+            request.CurrentMileage,
+            request.Fuel,
+            request.Gear,
+            request.PowerKw,
+            request.Seats,
+            request.RegistrationExpiry,
+            request.InsuranceExpiry);
 
         if (vehicleResult.IsFailure)
             return Result.Failure<CreateVehicleCommandResult>(vehicleResult.Error);

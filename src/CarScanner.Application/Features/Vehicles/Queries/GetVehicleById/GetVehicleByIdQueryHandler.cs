@@ -31,6 +31,12 @@ public sealed class GetVehicleByIdQueryHandler(IVehicleRepository vehicleReposit
             vehicle.Color,
             vehicle.CurrentMileage,
             vehicle.Status,
+            vehicle.Fuel,
+            vehicle.Gear,
+            vehicle.PowerKw,
+            vehicle.Seats,
+            vehicle.RegistrationExpiry,
+            vehicle.InsuranceExpiry,
             images);
     }
 }

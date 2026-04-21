@@ -16,6 +16,12 @@ public sealed record VehicleDetailDto(
     string Color,
     int CurrentMileage,
     VehicleStatus Status,
+    FuelType Fuel,
+    GearType Gear,
+    int? PowerKw,
+    int Seats,
+    DateOnly? RegistrationExpiry,
+    DateOnly? InsuranceExpiry,
     IReadOnlyList<VehicleImageDto> Images);
 
 public sealed record VehicleImageDto(

@@ -1,3 +1,4 @@
+using CarScanner.Domain.Enums;
 using CarScanner.SharedKernel.CQRS;
 using CarScanner.SharedKernel.Primitives;
 
@@ -10,4 +11,11 @@ public sealed record UpdateVehicleCommand(
     int Year,
     string LicensePlate,
     string Color,
-    int CurrentMileage) : ICommand<Result>;
+    int CurrentMileage,
+    FuelType Fuel,
+    GearType Gear,
+    int? PowerKw,
+    int Seats,
+    DateOnly? RegistrationExpiry,
+    DateOnly? InsuranceExpiry,
+    VehicleStatus Status) : ICommand<Result>;

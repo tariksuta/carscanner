@@ -1,3 +1,4 @@
+using CarScanner.Domain.Enums;
 using CarScanner.SharedKernel.CQRS;
 using CarScanner.SharedKernel.Primitives;
 
@@ -10,6 +11,12 @@ public sealed record CreateVehicleCommand(
     string LicensePlate,
     string Vin,
     string Color,
-    int CurrentMileage) : ICommand<Result<CreateVehicleCommandResult>>;
+    int CurrentMileage,
+    FuelType Fuel,
+    GearType Gear,
+    int? PowerKw,
+    int Seats,
+    DateOnly? RegistrationExpiry,
+    DateOnly? InsuranceExpiry) : ICommand<Result<CreateVehicleCommandResult>>;
 
 public sealed record CreateVehicleCommandResult(Guid VehicleId);

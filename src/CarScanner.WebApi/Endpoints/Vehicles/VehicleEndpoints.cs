@@ -5,6 +5,7 @@ using CarScanner.Application.Features.Vehicles.Commands.UpdateVehicle;
 using CarScanner.Application.Features.Vehicles.Commands.UploadVehicleImage;
 using CarScanner.Application.Features.Vehicles.Queries.GetVehicleById;
 using CarScanner.Application.Features.Vehicles.Queries.GetVehicles;
+using CarScanner.Domain.Enums;
 using MediatR;
 
 namespace CarScanner.WebApi.Endpoints.Vehicles;
@@ -55,7 +56,13 @@ public static class VehicleEndpoints
             request.LicensePlate,
             request.Vin,
             request.Color,
-            request.CurrentMileage);
+            request.CurrentMileage,
+            request.Fuel,
+            request.Gear,
+            request.PowerKw,
+            request.Seats,
+            request.RegistrationExpiry,
+            request.InsuranceExpiry);
 
         var result = await sender.Send(command, cancellationToken);
 
@@ -90,7 +97,14 @@ public static class VehicleEndpoints
             request.Year,
             request.LicensePlate,
             request.Color,
-            request.CurrentMileage);
+            request.CurrentMileage,
+            request.Fuel,
+            request.Gear,
+            request.PowerKw,
+            request.Seats,
+            request.RegistrationExpiry,
+            request.InsuranceExpiry,
+            request.Status);
 
         var result = await sender.Send(command, cancellationToken);
 
@@ -158,7 +172,13 @@ public sealed record CreateVehicleRequest(
     string LicensePlate,
     string Vin,
     string Color,
-    int CurrentMileage);
+    int CurrentMileage,
+    FuelType Fuel,
+    GearType Gear,
+    int? PowerKw,
+    int Seats,
+    DateOnly? RegistrationExpiry,
+    DateOnly? InsuranceExpiry);
 
 public sealed record UpdateVehicleRequest(
     string Brand,
@@ -166,4 +186,11 @@ public sealed record UpdateVehicleRequest(
     int Year,
     string LicensePlate,
     string Color,
-    int CurrentMileage);
+    int CurrentMileage,
+    FuelType Fuel,
+    GearType Gear,
+    int? PowerKw,
+    int Seats,
+    DateOnly? RegistrationExpiry,
+    DateOnly? InsuranceExpiry,
+    VehicleStatus Status);

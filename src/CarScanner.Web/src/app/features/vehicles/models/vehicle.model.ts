@@ -7,6 +7,19 @@ export enum VehicleStatus {
   OutOfService = 3,
 }
 
+export enum FuelType {
+  Petrol = 0,
+  Diesel = 1,
+  Hybrid = 2,
+  Electric = 3,
+}
+
+export enum GearType {
+  Manual = 0,
+  Automatic = 1,
+  Dsg = 2,
+}
+
 export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
   [VehicleStatus.Available]: 'Available',
   [VehicleStatus.Rented]: 'Rented',
@@ -42,6 +55,12 @@ export interface VehicleDetail extends BaseEntity {
   color: string;
   currentMileage: number;
   status: VehicleStatus;
+  fuel: FuelType;
+  gear: GearType;
+  powerKw: number | null;
+  seats: number;
+  registrationExpiry: string | null;
+  insuranceExpiry: string | null;
   images: VehicleImage[];
 }
 
@@ -53,6 +72,12 @@ export interface CreateVehicleRequest {
   vin: string;
   color: string;
   currentMileage: number;
+  fuel: FuelType;
+  gear: GearType;
+  powerKw: number | null;
+  seats: number;
+  registrationExpiry: string | null;
+  insuranceExpiry: string | null;
 }
 
 export interface UpdateVehicleRequest {
@@ -62,6 +87,13 @@ export interface UpdateVehicleRequest {
   licensePlate: string;
   color: string;
   currentMileage: number;
+  fuel: FuelType;
+  gear: GearType;
+  powerKw: number | null;
+  seats: number;
+  registrationExpiry: string | null;
+  insuranceExpiry: string | null;
+  status: VehicleStatus;
 }
 
 export interface CreateVehicleResponse {

@@ -1,5 +1,6 @@
 using CarScanner.Domain.Aggregates.VehicleAggregate;
 using CarScanner.Domain.Aggregates.VehicleAggregate.ValueObjects;
+using CarScanner.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -52,6 +53,24 @@ public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 
         builder.Property(v => v.Status)
             .IsRequired();
+
+        builder.Property(v => v.Fuel)
+            .IsRequired()
+            .HasDefaultValue(FuelType.Petrol);
+
+        builder.Property(v => v.Gear)
+            .IsRequired()
+            .HasDefaultValue(GearType.Manual);
+
+        builder.Property(v => v.PowerKw);
+
+        builder.Property(v => v.Seats)
+            .IsRequired()
+            .HasDefaultValue(5);
+
+        builder.Property(v => v.RegistrationExpiry);
+
+        builder.Property(v => v.InsuranceExpiry);
 
         builder.Property(v => v.RowVersion)
             .IsRowVersion();

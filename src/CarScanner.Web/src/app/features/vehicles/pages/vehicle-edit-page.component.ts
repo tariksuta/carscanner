@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { VehicleFormComponent } from '../components/vehicle-form.component';
-import { VehicleStore } from '../store/vehicle.store';
+import { VehicleService } from '../services/vehicle.service';
+import { VehicleDetail } from '../models/vehicle.model';
 
 @Component({
   selector: 'app-vehicle-edit-page',
@@ -11,8 +12,10 @@ import { VehicleStore } from '../store/vehicle.store';
   template: `
     @if (vehicle(); as v) {
       <app-vehicle-form mode="edit" [vehicle]="v" (saved)="onSaved($event)" />
-    } @else {
+    } @else if (notFound()) {
       <p class="cs-empty">Vozilo nije pronađeno</p>
+    } @else {
+      <p class="cs-empty">Učitavanje…</p>
     }
   `,
   styles: [
@@ -25,15 +28,24 @@ import { VehicleStore } from '../store/vehicle.store';
     `,
   ],
 })
-export class VehicleEditPageComponent implements OnInit {
+export class VehicleEditPageComponent {
   readonly id = input.required<string>();
-  private readonly store = inject(VehicleStore);
+  private readonly svc = inject(VehicleService);
   private readonly router = inject(Router);
 
-  readonly vehicle = computed(() => this.store.entityMap()[this.id()] ?? null);
+  readonly vehicle = signal<VehicleDetail | null>(null);
+  readonly notFound = signal(false);
 
-  ngOnInit(): void {
-    if (!this.store.entities().length) this.store.loadVehicles();
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      this.vehicle.set(null);
+      this.notFound.set(false);
+      this.svc.getDetail(id).subscribe({
+        next: (v) => this.vehicle.set(v),
+        error: () => this.notFound.set(true),
+      });
+    });
   }
 
   onSaved(id: string): void {

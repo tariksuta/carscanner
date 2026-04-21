@@ -22,12 +22,25 @@ public sealed class UpdateVehicleCommandHandler(
             request.Model,
             request.Year,
             request.LicensePlate,
-            request.Color);
+            request.Color,
+            request.Fuel,
+            request.Gear,
+            request.PowerKw,
+            request.Seats,
+            request.RegistrationExpiry,
+            request.InsuranceExpiry);
 
         if (updateResult.IsFailure)
             return updateResult;
 
         vehicle.UpdateMileage(request.CurrentMileage);
+
+        if (request.Status != vehicle.Status)
+        {
+            var statusResult = vehicle.ChangeStatus(request.Status);
+            if (statusResult.IsFailure)
+                return statusResult;
+        }
 
         return Result.Success();
     }

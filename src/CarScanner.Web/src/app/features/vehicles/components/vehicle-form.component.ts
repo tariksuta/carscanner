@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   CreateVehicleRequest,
+  FuelType,
+  GearType,
   UpdateVehicleRequest,
   Vehicle,
   VehicleDetail,
@@ -13,9 +15,6 @@ import { VehicleStore } from '../store/vehicle.store';
 import { FormShellComponent } from '../../../shared/components/form-shell/form-shell.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 
-type FuelKind = 'petrol' | 'diesel' | 'hybrid' | 'electric';
-type GearKind = 'manual' | 'automatic' | 'dsg';
-
 interface VehicleFormState {
   brand: string;
   model: string;
@@ -25,10 +24,10 @@ interface VehicleFormState {
   color: string;
   currentMileage: number;
   status: VehicleStatus;
-  fuel: FuelKind;
-  gear: GearKind;
+  fuel: FuelType;
+  gear: GearType;
   powerKw: number | null;
-  seats: number | null;
+  seats: number;
   registrationExpiry: string;
   insuranceExpiry: string;
 }
@@ -107,25 +106,36 @@ function formatPlate(raw: string): string {
         <h3 class="cs-sect-title">Tehničke specifikacije</h3>
         <div class="cs-2col">
           <app-form-field label="Gorivo">
-            <select [value]="state().fuel" (change)="upd('fuel', $any($event.target).value)">
-              <option value="petrol">Benzin</option>
-              <option value="diesel">Dizel</option>
-              <option value="hybrid">Hibrid</option>
-              <option value="electric">Električno</option>
+            <select (change)="updNum('fuel', $event)">
+              <option value="0" [selected]="state().fuel === 0">Benzin</option>
+              <option value="1" [selected]="state().fuel === 1">Dizel</option>
+              <option value="2" [selected]="state().fuel === 2">Hibrid</option>
+              <option value="3" [selected]="state().fuel === 3">Električno</option>
             </select>
           </app-form-field>
           <app-form-field label="Mjenjač">
-            <select [value]="state().gear" (change)="upd('gear', $any($event.target).value)">
-              <option value="manual">Ručni</option>
-              <option value="automatic">Automatski</option>
-              <option value="dsg">DSG</option>
+            <select (change)="updNum('gear', $event)">
+              <option value="0" [selected]="state().gear === 0">Ručni</option>
+              <option value="1" [selected]="state().gear === 1">Automatski</option>
+              <option value="2" [selected]="state().gear === 2">DSG</option>
             </select>
           </app-form-field>
           <app-form-field label="Snaga" hint="kW">
-            <input type="number" [value]="state().powerKw ?? 0" (input)="updNum('powerKw', $event)" />
+            <input
+              type="number"
+              min="1"
+              [value]="state().powerKw ?? ''"
+              (input)="onPowerKwInput($any($event.target).value)"
+            />
           </app-form-field>
           <app-form-field label="Broj sjedišta">
-            <input type="number" [value]="state().seats ?? 5" (input)="updNum('seats', $event)" />
+            <input
+              type="number"
+              min="1"
+              max="9"
+              [value]="state().seats"
+              (input)="updNum('seats', $event)"
+            />
           </app-form-field>
         </div>
       </section>
@@ -146,14 +156,18 @@ function formatPlate(raw: string): string {
             }
           </div>
         </app-form-field>
-        <app-form-field label="Status">
-          <select [value]="state().status" (change)="updNum('status', $event)">
-            <option [value]="0">Dostupno</option>
-            <option [value]="1">Izdato</option>
-            <option [value]="2">Servis</option>
-            <option [value]="3">Van službe</option>
-          </select>
-        </app-form-field>
+        @if (mode() === 'edit') {
+          <app-form-field label="Status" hint="Izdavanje/povrat ide kroz rental">
+            <select (change)="updNum('status', $event)">
+              <option value="0" [selected]="state().status === 0">Dostupno</option>
+              <option value="1" [selected]="state().status === 1" [disabled]="state().status !== 1">
+                Izdato
+              </option>
+              <option value="2" [selected]="state().status === 2">Servis</option>
+              <option value="3" [selected]="state().status === 3">Van službe</option>
+            </select>
+          </app-form-field>
+        }
       </section>
 
       <section class="cs-card cs-pad">
@@ -310,8 +324,8 @@ export class VehicleFormComponent implements OnInit {
     color: SWATCHES[0],
     currentMileage: 0,
     status: VehicleStatus.Available,
-    fuel: 'petrol',
-    gear: 'manual',
+    fuel: FuelType.Petrol,
+    gear: GearType.Manual,
     powerKw: null,
     seats: 5,
     registrationExpiry: '',
@@ -343,6 +357,7 @@ export class VehicleFormComponent implements OnInit {
   ngOnInit(): void {
     const v = this.vehicle();
     if (v) {
+      const d = v as Partial<VehicleDetail>;
       this.state.update((s) => ({
         ...s,
         brand: v.brand,
@@ -353,6 +368,12 @@ export class VehicleFormComponent implements OnInit {
         color: v.color || s.color,
         currentMileage: v.currentMileage,
         status: v.status,
+        fuel: d.fuel ?? s.fuel,
+        gear: d.gear ?? s.gear,
+        powerKw: d.powerKw ?? null,
+        seats: d.seats ?? s.seats,
+        registrationExpiry: d.registrationExpiry ?? '',
+        insuranceExpiry: d.insuranceExpiry ?? '',
       }));
     }
   }
@@ -363,6 +384,16 @@ export class VehicleFormComponent implements OnInit {
 
   onPlateInput(raw: string): void {
     this.state.update((s) => ({ ...s, licensePlate: formatPlate(raw) }));
+  }
+
+  onPowerKwInput(raw: string): void {
+    const trimmed = raw.trim();
+    if (trimmed === '') {
+      this.state.update((s) => ({ ...s, powerKw: null }));
+      return;
+    }
+    const n = Number(trimmed);
+    this.state.update((s) => ({ ...s, powerKw: Number.isFinite(n) && n > 0 ? n : null }));
   }
 
   updNum(key: keyof VehicleFormState, ev: Event): void {
@@ -383,6 +414,13 @@ export class VehicleFormComponent implements OnInit {
         licensePlate: s.licensePlate,
         color: s.color,
         currentMileage: s.currentMileage,
+        fuel: s.fuel,
+        gear: s.gear,
+        powerKw: s.powerKw,
+        seats: s.seats,
+        registrationExpiry: s.registrationExpiry || null,
+        insuranceExpiry: s.insuranceExpiry || null,
+        status: s.status,
       };
       this.submitting.set(true);
       this.svc.update(this.vehicle()!.id, req).subscribe({
@@ -403,6 +441,12 @@ export class VehicleFormComponent implements OnInit {
       vin: s.vin,
       color: s.color,
       currentMileage: s.currentMileage,
+      fuel: s.fuel,
+      gear: s.gear,
+      powerKw: s.powerKw,
+      seats: s.seats,
+      registrationExpiry: s.registrationExpiry || null,
+      insuranceExpiry: s.insuranceExpiry || null,
     };
     this.submitting.set(true);
     this.svc.create(req).subscribe({
