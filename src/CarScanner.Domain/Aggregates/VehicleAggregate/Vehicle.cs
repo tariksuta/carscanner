@@ -20,6 +20,12 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
     public string Color { get; private set; } = null!;
     public int CurrentMileage { get; private set; }
     public VehicleStatus Status { get; private set; }
+    public FuelType Fuel { get; private set; }
+    public GearType Gear { get; private set; }
+    public int? PowerKw { get; private set; }
+    public int Seats { get; private set; }
+    public DateOnly? RegistrationExpiry { get; private set; }
+    public DateOnly? InsuranceExpiry { get; private set; }
 
     public IReadOnlyCollection<VehicleImage> Images => _images.AsReadOnly();
 
@@ -32,7 +38,13 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         LicensePlate licensePlate,
         string vin,
         string color,
-        int currentMileage) : base()
+        int currentMileage,
+        FuelType fuel,
+        GearType gear,
+        int? powerKw,
+        int seats,
+        DateOnly? registrationExpiry,
+        DateOnly? insuranceExpiry) : base()
     {
         Brand = brand;
         Model = model;
@@ -42,6 +54,12 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         Color = color;
         CurrentMileage = currentMileage;
         Status = VehicleStatus.Available;
+        Fuel = fuel;
+        Gear = gear;
+        PowerKw = powerKw;
+        Seats = seats;
+        RegistrationExpiry = registrationExpiry;
+        InsuranceExpiry = insuranceExpiry;
     }
 
     public static Result<Vehicle> Create(
@@ -51,7 +69,13 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         string licensePlate,
         string vin,
         string color,
-        int currentMileage)
+        int currentMileage,
+        FuelType fuel,
+        GearType gear,
+        int? powerKw,
+        int seats,
+        DateOnly? registrationExpiry,
+        DateOnly? insuranceExpiry)
     {
         if (string.IsNullOrWhiteSpace(brand))
             return Result.Failure<Vehicle>(VehicleDomainErrors.InvalidBrand);
@@ -69,6 +93,12 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         if (string.IsNullOrWhiteSpace(vin) || vin.Length != 17)
             return Result.Failure<Vehicle>(VehicleDomainErrors.InvalidVin);
 
+        if (powerKw.HasValue && powerKw.Value <= 0)
+            return Result.Failure<Vehicle>(VehicleDomainErrors.InvalidPowerKw);
+
+        if (seats < 1 || seats > 9)
+            return Result.Failure<Vehicle>(VehicleDomainErrors.InvalidSeats);
+
         return new Vehicle(
             brand.Trim(),
             model.Trim(),
@@ -76,7 +106,13 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
             licensePlateResult.Value,
             vin.ToUpperInvariant(),
             color?.Trim() ?? string.Empty,
-            currentMileage);
+            currentMileage,
+            fuel,
+            gear,
+            powerKw,
+            seats,
+            registrationExpiry,
+            insuranceExpiry);
     }
 
     public Result AddImage(string imageUrl, bool isPrimary)
@@ -176,7 +212,13 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         string model,
         int year,
         string licensePlate,
-        string color)
+        string color,
+        FuelType fuel,
+        GearType gear,
+        int? powerKw,
+        int seats,
+        DateOnly? registrationExpiry,
+        DateOnly? insuranceExpiry)
     {
         if (string.IsNullOrWhiteSpace(brand))
             return Result.Failure(VehicleDomainErrors.InvalidBrand);
@@ -191,12 +233,36 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         if (licensePlateResult.IsFailure)
             return Result.Failure(licensePlateResult.Error);
 
+        if (powerKw.HasValue && powerKw.Value <= 0)
+            return Result.Failure(VehicleDomainErrors.InvalidPowerKw);
+
+        if (seats < 1 || seats > 9)
+            return Result.Failure(VehicleDomainErrors.InvalidSeats);
+
         Brand = brand.Trim();
         Model = model.Trim();
         Year = year;
         LicensePlate = licensePlateResult.Value;
         Color = color?.Trim() ?? string.Empty;
+        Fuel = fuel;
+        Gear = gear;
+        PowerKw = powerKw;
+        Seats = seats;
+        RegistrationExpiry = registrationExpiry;
+        InsuranceExpiry = insuranceExpiry;
 
+        return Result.Success();
+    }
+
+    public Result ChangeStatus(VehicleStatus newStatus)
+    {
+        if (newStatus == Status)
+            return Result.Success();
+
+        if (newStatus == VehicleStatus.Rented || Status == VehicleStatus.Rented)
+            return Result.Failure(VehicleDomainErrors.InvalidStatusTransition);
+
+        Status = newStatus;
         return Result.Success();
     }
 }

@@ -25,6 +25,15 @@ public static class VehicleDomainErrors
     public static readonly DomainError InvalidVin =
         DomainError.Validation("Vehicle.InvalidVin", "Vehicle VIN must be 17 characters.");
 
+    public static readonly DomainError InvalidPowerKw =
+        DomainError.Validation("Vehicle.InvalidPowerKw", "Vehicle power (kW) must be greater than zero.");
+
+    public static readonly DomainError InvalidSeats =
+        DomainError.Validation("Vehicle.InvalidSeats", "Vehicle seats must be between 1 and 9.");
+
+    public static readonly DomainError InvalidStatusTransition =
+        DomainError.Validation("Vehicle.InvalidStatusTransition", "Requested status transition is not allowed.");
+
     public static readonly DomainError MaxImagesReached =
         DomainError.Validation("Vehicle.MaxImagesReached", "A vehicle can have a maximum of 10 images.");
 
