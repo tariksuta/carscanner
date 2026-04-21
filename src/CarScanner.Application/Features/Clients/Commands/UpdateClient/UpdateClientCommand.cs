@@ -11,4 +11,10 @@ public sealed record UpdateClientCommand(
     string? Address,
     string DriverLicenseNumber,
     DateTime DriverLicenseExpiry,
-    string DriverLicenseCountry) : ICommand<Result>;
+    string DriverLicenseCountry,
+    string? City,
+    DateOnly? BirthDate,
+    string? Jmbg,
+    bool IsVip,
+    bool MarketingConsent,
+    string? InternalNote) : ICommand<Result>;

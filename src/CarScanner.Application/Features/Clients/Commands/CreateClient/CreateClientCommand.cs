@@ -11,6 +11,12 @@ public sealed record CreateClientCommand(
     string DriverLicenseNumber,
     DateTime DriverLicenseExpiry,
     string DriverLicenseCountry,
-    string? Address) : ICommand<Result<CreateClientCommandResult>>;
+    string? Address,
+    string? City,
+    DateOnly? BirthDate,
+    string? Jmbg,
+    bool IsVip,
+    bool MarketingConsent,
+    string? InternalNote) : ICommand<Result<CreateClientCommandResult>>;
 
 public sealed record CreateClientCommandResult(Guid ClientId);

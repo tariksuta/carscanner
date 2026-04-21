@@ -53,6 +53,25 @@ public sealed class ClientConfiguration : IEntityTypeConfiguration<Client>
         builder.Property(c => c.Address)
             .HasMaxLength(500);
 
+        builder.Property(c => c.City)
+            .HasMaxLength(100);
+
+        builder.Property(c => c.BirthDate);
+
+        builder.Property(c => c.Jmbg)
+            .HasMaxLength(13);
+
+        builder.Property(c => c.IsVip)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(c => c.MarketingConsent)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(c => c.InternalNote)
+            .HasMaxLength(2000);
+
         builder.Property(c => c.RowVersion)
             .IsRowVersion();
 

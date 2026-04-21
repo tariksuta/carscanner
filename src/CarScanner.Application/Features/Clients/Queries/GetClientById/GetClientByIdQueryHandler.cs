@@ -27,6 +27,12 @@ public sealed class GetClientByIdQueryHandler(IClientRepository clientRepository
             client.DriverLicense.ExpiryDate,
             client.DriverLicense.IssuingCountry,
             client.Address,
+            client.City,
+            client.BirthDate,
+            client.Jmbg,
+            client.IsVip,
+            client.MarketingConsent,
+            client.InternalNote,
             client.CreatedOnUtc,
             client.ModifiedOnUtc);
     }

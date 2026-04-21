@@ -21,7 +21,13 @@ public sealed class UpdateClientCommandHandler(
             request.FirstName,
             request.LastName,
             request.Phone,
-            request.Address);
+            request.Address,
+            request.City,
+            request.BirthDate,
+            request.Jmbg,
+            request.IsVip,
+            request.MarketingConsent,
+            request.InternalNote);
 
         if (updateResult.IsFailure)
             return updateResult;

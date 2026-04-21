@@ -9,6 +9,12 @@ export interface Client extends BaseEntity {
   driverLicenseExpiry: string;
   driverLicenseCountry: string;
   address?: string;
+  city?: string;
+  birthDate?: string;
+  jmbg?: string;
+  isVip: boolean;
+  marketingConsent: boolean;
+  internalNote?: string;
 }
 
 export interface CreateClientRequest {
@@ -20,6 +26,12 @@ export interface CreateClientRequest {
   driverLicenseExpiry: string;
   driverLicenseCountry: string;
   address?: string;
+  city?: string;
+  birthDate?: string;
+  jmbg?: string;
+  isVip: boolean;
+  marketingConsent: boolean;
+  internalNote?: string;
 }
 
 export interface UpdateClientRequest {
@@ -30,6 +42,12 @@ export interface UpdateClientRequest {
   driverLicenseNumber: string;
   driverLicenseExpiry: string;
   driverLicenseCountry: string;
+  city?: string;
+  birthDate?: string;
+  jmbg?: string;
+  isVip: boolean;
+  marketingConsent: boolean;
+  internalNote?: string;
 }
 
 export interface CreateClientResponse {
