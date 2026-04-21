@@ -1,0 +1,13 @@
+using CarScanner.SharedKernel.CQRS;
+using CarScanner.SharedKernel.Primitives;
+
+namespace CarScanner.Application.Features.Vehicles.Commands.UpdateVehicle;
+
+public sealed record UpdateVehicleCommand(
+    Guid VehicleId,
+    string Brand,
+    string Model,
+    int Year,
+    string LicensePlate,
+    string Color,
+    int CurrentMileage) : ICommand<Result>;

@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+
+/* ==========================================================================
+   CarScanner — Premium Dark design tokens
+   Mirrors the shared design token set from the mobile app (tokens.css) so
+   web and mobile stay visually identical. Consumed by new "cs-"* prefixed
+   components. Also mapped onto Tailwind/Spartan token names (--background,
+   --card, --border, etc.) so existing utility classes pick up the palette.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* Background layers — nearly-black with subtle cool tint */
+  --cs-bg-0: #0A0B0D;
+  --cs-bg-1: #121418;
+  --cs-bg-2: #181B20;
+  --cs-bg-3: #21252C;
+  --cs-bg-4: #2A2F38;
+
+  /* Borders */
+  --cs-border-subtle: rgba(255, 255, 255, 0.06);
+  --cs-border: rgba(255, 255, 255, 0.09);
+  --cs-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --cs-text-primary: #F5F6F8;
+  --cs-text-secondary: #A8ADB8;
+  --cs-text-tertiary: #6B7280;
+  --cs-text-quaternary: #4A5060;
+
+  /* Signal lime accent */
+  --cs-accent: #D8FF3C;
+  --cs-accent-soft: rgba(216, 255, 60, 0.14);
+  --cs-accent-ink: #0A0B0D;
+
+  /* Status colors */
+  --cs-status-pending: #F5A623;
+  --cs-status-pending-soft: rgba(245, 166, 35, 0.14);
+  --cs-status-active: #3BD4A0;
+  --cs-status-active-soft: rgba(59, 212, 160, 0.14);
+  --cs-status-danger: #FF5C5C;
+  --cs-status-danger-soft: rgba(255, 92, 92, 0.14);
+  --cs-status-info: #5B9FFF;
+  --cs-status-info-soft: rgba(91, 159, 255, 0.14);
+  --cs-status-neutral: #8A8F9B;
+  --cs-status-neutral-soft: rgba(138, 143, 155, 0.14);
+
+  /* Severity */
+  --cs-sev-minor: #F5D04A;
+  --cs-sev-moderate: #FF9A3C;
+  --cs-sev-severe: #FF5C5C;
+
+  /* Radii */
+  --cs-r-xs: 6px;
+  --cs-r-sm: 10px;
+  --cs-r-md: 14px;
+  --cs-r-lg: 20px;
+  --cs-r-xl: 28px;
+  --cs-r-pill: 999px;
+
+  /* Shadows */
+  --cs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --cs-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --cs-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.55);
+
+  /* Type scale */
+  --font-display: 'Inter Tight', 'SF Pro Display', -apple-system, system-ui, sans-serif;
+  --font-text: 'Inter', 'SF Pro Text', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: var(--font-text);
+
+  /* ===== Tailwind / Spartan-preset token bindings ===== */
+  --radius: 14px;
+  --background: var(--cs-bg-0);
+  --foreground: var(--cs-text-primary);
+  --card: var(--cs-bg-2);
+  --card-foreground: var(--cs-text-primary);
+  --popover: var(--cs-bg-1);
+  --popover-foreground: var(--cs-text-primary);
+  --primary: var(--cs-accent);
+  --primary-foreground: var(--cs-accent-ink);
+  --secondary: var(--cs-bg-3);
+  --secondary-foreground: var(--cs-text-secondary);
+  --muted: var(--cs-bg-1);
+  --muted-foreground: var(--cs-text-tertiary);
+  --accent: var(--cs-bg-3);
+  --accent-foreground: var(--cs-text-primary);
+  --destructive: var(--cs-status-danger);
+  --destructive-foreground: var(--cs-accent-ink);
+  --border: var(--cs-border);
+  --input: var(--cs-bg-3);
+  --ring: var(--cs-accent);
+  --sidebar: var(--cs-bg-1);
+  --sidebar-foreground: var(--cs-text-secondary);
+  --sidebar-primary: var(--cs-accent);
+  --sidebar-primary-foreground: var(--cs-accent-ink);
+  --sidebar-accent: var(--cs-accent-soft);
+  --sidebar-accent-foreground: var(--cs-text-primary);
+  --sidebar-border: var(--cs-border-subtle);
+  --sidebar-ring: var(--cs-accent);
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--cs-bg-0);
+  color: var(--cs-text-primary);
+  font-family: var(--font-text);
+}
+
+body {
+  @apply bg-background text-foreground;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cs-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cs-border-strong);
+}
+
+/* Focus */
+input:focus,
+button:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+input:focus {
+  border-color: var(--cs-accent) !important;
+}
+
+/* Utilities */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Pulse animation for selected damage pin */
+@keyframes cs-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+}
