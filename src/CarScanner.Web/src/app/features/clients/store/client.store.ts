@@ -4,7 +4,7 @@ import { withEntities, setAllEntities, upsertEntity } from '@ngrx/signals/entiti
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { pipe, switchMap, tap } from 'rxjs';
-import { Client } from '../models/client.model';
+import { Client, ClientDetails } from '../models/client.model';
 import { ClientService } from '../services/client.service';
 
 type ClientState = {
@@ -18,6 +18,9 @@ type ClientState = {
   totalPages: number;
   hasPreviousPage: boolean;
   hasNextPage: boolean;
+  selectedClientDetails: ClientDetails | null;
+  isDetailsLoading: boolean;
+  detailsError: string | null;
 };
 
 const initialState: ClientState = {
@@ -31,6 +34,9 @@ const initialState: ClientState = {
   totalPages: 0,
   hasPreviousPage: false,
   hasNextPage: false,
+  selectedClientDetails: null,
+  isDetailsLoading: false,
+  detailsError: null,
 };
 
 export const ClientStore = signalStore(
@@ -81,6 +87,24 @@ export const ClientStore = signalStore(
             tapResponse({
               next: (client) => patchState(store, upsertEntity(client), { isLoading: false }),
               error: (error: Error) => patchState(store, { isLoading: false, error: error.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    loadClientDetails: rxMethod<string>(
+      pipe(
+        tap(() => patchState(store, { isDetailsLoading: true, detailsError: null })),
+        switchMap((id) =>
+          clientService.getDetails(id).pipe(
+            tapResponse({
+              next: (details) =>
+                patchState(store, upsertEntity(details.client), {
+                  selectedClientDetails: details,
+                  isDetailsLoading: false,
+                }),
+              error: (error: Error) =>
+                patchState(store, { isDetailsLoading: false, detailsError: error.message }),
             }),
           ),
         ),

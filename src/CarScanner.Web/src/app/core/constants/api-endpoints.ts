@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   CLIENTS: {
     BASE: '/clients',
     BY_ID: (id: string) => `/clients/${id}`,
+    DETAILS: (id: string) => `/clients/${id}/details`,
   },
   EMPLOYEES: {
     BASE: '/employees',

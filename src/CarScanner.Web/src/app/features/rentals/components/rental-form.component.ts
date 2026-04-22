@@ -30,6 +30,7 @@ import { VehicleStatus } from '../../vehicles/models/vehicle.model';
           />
         </div>
         <div class="space-y-2"><label class="text-sm font-medium">Expected Return Date</label><input type="date" formControlName="expectedReturnDate" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
+        <div class="space-y-2"><label class="text-sm font-medium">Cijena (KM)</label><input type="number" step="0.01" min="0" formControlName="price" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
         <div class="space-y-2 md:col-span-2"><label class="text-sm font-medium">Notes</label><textarea formControlName="notes" rows="3" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"></textarea></div>
       </div>
       <div class="flex gap-3">
@@ -45,7 +46,13 @@ export class RentalFormComponent implements OnInit {
 
   submitForm = output<CreateRentalRequest>(); cancel = output<void>();
   private readonly fb = new FormBuilder();
-  form = this.fb.nonNullable.group({ vehicleId: ['', Validators.required], clientId: ['', Validators.required], expectedReturnDate: ['', Validators.required], notes: [''] });
+  form = this.fb.nonNullable.group({
+    vehicleId: ['', Validators.required],
+    clientId: ['', Validators.required],
+    expectedReturnDate: ['', Validators.required],
+    price: [0, [Validators.required, Validators.min(0)]],
+    notes: [''],
+  });
 
   vehicleOptions = computed(() =>
     this.vehicleStore.entities()

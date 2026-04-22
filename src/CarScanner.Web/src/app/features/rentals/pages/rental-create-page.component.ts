@@ -714,6 +714,7 @@ export class RentalCreatePageComponent implements OnInit {
       clientId: s.clientId,
       vehicleId: s.vehicleId,
       expectedReturnDate: new Date(s.returnAt).toISOString(),
+      price: this.subtotal(),
       notes: s.notes || undefined,
     };
     this.submitting.set(true);

@@ -185,6 +185,9 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
 
     public Result MarkAsAvailable(int newMileage)
     {
+        if (Status != VehicleStatus.Rented)
+            return Result.Failure(VehicleDomainErrors.InvalidStatusTransition);
+
         Status = VehicleStatus.Available;
         if (newMileage > CurrentMileage)
             CurrentMileage = newMileage;

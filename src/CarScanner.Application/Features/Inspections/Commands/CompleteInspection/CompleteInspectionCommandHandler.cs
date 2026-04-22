@@ -42,7 +42,10 @@ public sealed class CompleteInspectionCommandHandler(
             if (pickupResult.IsFailure)
                 return Result.Failure<CompleteInspectionCommandResult>(pickupResult.Error);
 
-            vehicle.MarkAsRented();
+            var rentedResult = vehicle.MarkAsRented();
+            if (rentedResult.IsFailure)
+                return Result.Failure<CompleteInspectionCommandResult>(rentedResult.Error);
+
             vehicle.UpdateMileage(request.CurrentMileage);
         }
         else
@@ -51,7 +54,9 @@ public sealed class CompleteInspectionCommandHandler(
             if (returnResult.IsFailure)
                 return Result.Failure<CompleteInspectionCommandResult>(returnResult.Error);
 
-            vehicle.MarkAsAvailable(request.CurrentMileage);
+            var availableResult = vehicle.MarkAsAvailable(request.CurrentMileage);
+            if (availableResult.IsFailure)
+                return Result.Failure<CompleteInspectionCommandResult>(availableResult.Error);
         }
 
         return new CompleteInspectionCommandResult(inspection.Id, inspection.InspectionType == InspectionType.Return);

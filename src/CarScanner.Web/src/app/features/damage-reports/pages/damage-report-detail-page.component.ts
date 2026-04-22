@@ -153,10 +153,22 @@ import { StatusBadgeComponent, StatusBadgeVariant } from '../../../shared/compon
               }
             </header>
             <div class="cs-card-pad cs-detail-body">
-              <app-before-after-slider
-                [beforeUrl]="selectedItem()?.pickupPhotoUrl ?? null"
-                [afterUrl]="selectedItem()?.returnPhotoUrl ?? null"
-              />
+              @if (selectedItem()?.pickupPhotoUrl || selectedItem()?.returnPhotoUrl) {
+                <app-before-after-slider
+                  [beforeUrl]="selectedItem()?.pickupPhotoUrl ?? null"
+                  [afterUrl]="selectedItem()?.returnPhotoUrl ?? null"
+                />
+              } @else {
+                <div class="cs-ba-empty">
+                  <lucide-icon name="image-off" [size]="28" />
+                  <div class="cs-ba-empty-title">
+                    {{ items().length ? 'Odaberi stavku lijevo' : 'Nema detektiranih šteta' }}
+                  </div>
+                  <div class="cs-ba-empty-sub">
+                    {{ items().length ? 'Klikni na pin ili stavku za prikaz fotografija' : 'Pokreni AI analizu da generiraš vizuelnu usporedbu' }}
+                  </div>
+                </div>
+              }
 
               <div class="cs-ai-panel">
                 <div class="cs-ai-head">
@@ -464,6 +476,29 @@ import { StatusBadgeComponent, StatusBadgeVariant } from '../../../shared/compon
         color: var(--cs-text-tertiary);
         font-size: 13px;
       }
+      .cs-ba-empty {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1a1d22, #2a2f38);
+        border: 1px dashed var(--cs-border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--cs-text-tertiary);
+      }
+      .cs-ba-empty-title {
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--cs-text-secondary);
+      }
+      .cs-ba-empty-sub {
+        font-size: 12px;
+        color: var(--cs-text-tertiary);
+      }
       :host ::ng-deep .cs-items-list app-damage-item-card button {
         width: 100%;
       }
@@ -523,10 +558,9 @@ export class DamageReportDetailPageComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.store.selectReport(this.id());
-    if (!this.store.entities().length) {
-      this.store.loadReports();
-    }
+    const id = this.id();
+    this.store.selectReport(id);
+    this.store.loadReportById(id);
   }
 
   onPinSelect(p: CarDiagramPin): void {
