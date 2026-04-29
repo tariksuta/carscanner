@@ -43,6 +43,9 @@ import {
   ShieldCheck,
   UserX,
   Wallet,
+  Building2,
+  Power,
+  PowerOff,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -98,6 +101,9 @@ export const appConfig: ApplicationConfig = {
         ShieldCheck,
         UserX,
         Wallet,
+        Building2,
+        Power,
+        PowerOff,
       }),
     },
   ],

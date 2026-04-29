@@ -21,4 +21,9 @@ public static class InspectionDomainErrors
 
     public static readonly DomainError CannotModifyCompletedInspection =
         new("Inspection.CannotModify", "Cannot modify a completed inspection.");
+
+    public static DomainError EmployeeNotFound(Guid employeeId) =>
+        DomainError.Validation(
+            "Inspection.EmployeeNotFound",
+            $"Inspection requires a valid employee. Employee with id '{employeeId}' was not found.");
 }

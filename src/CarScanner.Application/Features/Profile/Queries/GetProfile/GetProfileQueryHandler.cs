@@ -1,12 +1,14 @@
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Errors;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Repository;
+using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
 using CarScanner.SharedKernel.CQRS;
 using CarScanner.SharedKernel.Primitives;
 
 namespace CarScanner.Application.Features.Profile.Queries.GetProfile;
 
 public sealed class GetProfileQueryHandler(
-    IApplicationUserRepository userRepository)
+    IApplicationUserRepository userRepository,
+    IEmployeeRepository employeeRepository)
     : IQueryHandler<GetProfileQuery, Result<GetProfileQueryResult>>
 {
     public async Task<Result<GetProfileQueryResult>> Handle(
@@ -18,6 +20,8 @@ public sealed class GetProfileQueryHandler(
         if (user is null)
             return Result.Failure<GetProfileQueryResult>(ApplicationUserDomainErrors.NotFound(request.UserId));
 
+        var employee = await employeeRepository.GetByApplicationUserIdAsync(request.UserId, cancellationToken);
+
         return new GetProfileQueryResult(
             user.Email,
             user.FirstName,
@@ -26,6 +30,7 @@ public sealed class GetProfileQueryHandler(
             user.Address?.City,
             user.Address?.ZipCode,
             user.Address?.Country,
-            user.ProfileImageUrl);
+            user.ProfileImageUrl,
+            employee?.Id);
     }
 }

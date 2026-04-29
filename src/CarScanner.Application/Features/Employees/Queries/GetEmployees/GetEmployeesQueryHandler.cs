@@ -38,7 +38,13 @@ public sealed class GetEmployeesQueryHandler(IEmployeeRepository employeeReposit
                 e.Phone,
                 e.IsActive,
                 e.CreatedOnUtc,
-                e.ModifiedOnUtc))
+                e.ModifiedOnUtc,
+                e.HasLoginAccess,
+                e.ApplicationUser?.Role,
+                e.ApplicationUser?.LastSignInOnUtc,
+                e.BranchId,
+                e.Branch?.Name,
+                e.Branch?.City))
             .ToList();
 
         return new PagedResult<EmployeeDto>(items, request.Page, request.PageSize, totalCount);

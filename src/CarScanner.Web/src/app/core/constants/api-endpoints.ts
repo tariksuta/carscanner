@@ -19,6 +19,15 @@ export const API_ENDPOINTS = {
     BASE: '/employees',
     BY_ID: (id: string) => `/employees/${id}`,
     LOGIN_ACCESS: (id: string) => `/employees/${id}/login-account`,
+    PERMISSIONS: (id: string) => `/employees/${id}/permissions`,
+    STATS: (id: string) => `/employees/${id}/stats`,
+    RECENT_INSPECTIONS: (id: string) => `/employees/${id}/recent-inspections`,
+  },
+  BRANCHES: {
+    BASE: '/branches',
+    BY_ID: (id: string) => `/branches/${id}`,
+    ACTIVATE: (id: string) => `/branches/${id}/activate`,
+    DEACTIVATE: (id: string) => `/branches/${id}/deactivate`,
   },
   RENTALS: {
     BASE: '/rentals',

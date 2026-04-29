@@ -8,7 +8,7 @@ namespace CarScanner.Infrastructure.AI;
 public sealed class MockVehicleDamageAnalyzer(ILogger<MockVehicleDamageAnalyzer> logger)
     : IVehicleDamageAnalyzer
 {
-    public Task<DamageAnalysisResult> AnalyzeDamageAsync(
+    public Task<DamageAnalysisOutcome> AnalyzeDamageAsync(
         DamageAnalysisRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -22,8 +22,9 @@ public sealed class MockVehicleDamageAnalyzer(ILogger<MockVehicleDamageAnalyzer>
 
         if (!hasDamage)
         {
-            return Task.FromResult(DamageAnalysisResult.NoDamageFound(
-                "{\"hasDamages\": false, \"damages\": []}"));
+            return Task.FromResult(new DamageAnalysisOutcome(
+                DamageAnalysisResult.NoDamageFound("{\"hasDamages\": false, \"damages\": []}"),
+                null));
         }
 
         var damages = new List<DetectedDamage>();
@@ -51,8 +52,10 @@ public sealed class MockVehicleDamageAnalyzer(ILogger<MockVehicleDamageAnalyzer>
             damages.Count,
             request.RentalId);
 
-        return Task.FromResult(DamageAnalysisResult.DamagesFound(
-            damages,
-            $"{{\"hasDamages\": true, \"damages\": [{damages.Count} items]}}"));
+        return Task.FromResult(new DamageAnalysisOutcome(
+            DamageAnalysisResult.DamagesFound(
+                damages,
+                $"{{\"hasDamages\": true, \"damages\": [{damages.Count} items]}}"),
+            null));
     }
 }

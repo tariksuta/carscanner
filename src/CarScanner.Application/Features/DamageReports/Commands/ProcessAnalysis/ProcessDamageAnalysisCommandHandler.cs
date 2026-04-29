@@ -7,6 +7,7 @@ using CarScanner.Domain.Aggregates.VehicleAggregate.Repository;
 using CarScanner.Domain.Enums;
 using CarScanner.SharedKernel.CQRS;
 using CarScanner.SharedKernel.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace CarScanner.Application.Features.DamageReports.Commands.ProcessAnalysis;
 
@@ -14,7 +15,8 @@ public sealed class ProcessDamageAnalysisCommandHandler(
     IDamageReportRepository damageReportRepository,
     IVehicleInspectionRepository inspectionRepository,
     IVehicleRepository vehicleRepository,
-    IVehicleDamageAnalyzer damageAnalyzer)
+    IVehicleDamageAnalyzer damageAnalyzer,
+    ILogger<ProcessDamageAnalysisCommandHandler> logger)
     : ICommandHandler<ProcessDamageAnalysisCommand, Result>
 {
     public async Task<Result> Handle(
@@ -59,7 +61,23 @@ public sealed class ProcessDamageAnalysisCommandHandler(
             vehicleInfo,
             photoPairs);
 
-        var analysisResult = await damageAnalyzer.AnalyzeDamageAsync(analysisRequest, cancellationToken);
+        var outcome = await damageAnalyzer.AnalyzeDamageAsync(analysisRequest, cancellationToken);
+
+        if (outcome.Usage is not null)
+        {
+            logger.LogInformation(
+                "AI token usage for damage report {DamageReportId} (tenant {TenantId}, rental {RentalId}): " +
+                "model={Model}, prompt_tokens={PromptTokens}, completion_tokens={CompletionTokens}, total_tokens={TotalTokens}",
+                report.Id,
+                report.TenantId,
+                report.RentalId,
+                outcome.Usage.Model,
+                outcome.Usage.PromptTokens,
+                outcome.Usage.CompletionTokens,
+                outcome.Usage.TotalTokens);
+        }
+
+        var analysisResult = outcome.Result;
 
         if (!analysisResult.Success)
         {

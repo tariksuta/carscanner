@@ -8,4 +8,5 @@ public sealed record GetProfileQueryResult(
     string? City,
     string? ZipCode,
     string? Country,
-    string? ProfileImageUrl);
+    string? ProfileImageUrl,
+    Guid? EmployeeId);

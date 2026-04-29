@@ -4,7 +4,13 @@ import { withEntities, setAllEntities, upsertEntity } from '@ngrx/signals/entiti
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { pipe, switchMap, tap } from 'rxjs';
-import { Employee, EmployeeRole } from '../models/employee.model';
+import {
+  Employee,
+  EmployeePermission,
+  EmployeeRecentInspection,
+  EmployeeRole,
+  EmployeeStats,
+} from '../models/employee.model';
 import { EmployeeService } from '../services/employee.service';
 
 type EmployeeState = {
@@ -18,6 +24,9 @@ type EmployeeState = {
   totalPages: number;
   hasPreviousPage: boolean;
   hasNextPage: boolean;
+  permissionsByEmployeeId: Record<string, EmployeePermission[]>;
+  statsByEmployeeId: Record<string, EmployeeStats>;
+  recentInspectionsByEmployeeId: Record<string, EmployeeRecentInspection[]>;
 };
 
 const initialState: EmployeeState = {
@@ -31,6 +40,9 @@ const initialState: EmployeeState = {
   totalPages: 0,
   hasPreviousPage: false,
   hasNextPage: false,
+  permissionsByEmployeeId: {},
+  statsByEmployeeId: {},
+  recentInspectionsByEmployeeId: {},
 };
 
 export const EmployeeStore = signalStore(
@@ -39,6 +51,21 @@ export const EmployeeStore = signalStore(
   withEntities<Employee>(),
   withComputed((store) => ({
     selectedEmployee: computed(() => store.entityMap()[store.selectedEmployeeId() ?? ''] ?? null),
+    selectedEmployeePermissions: computed(() => {
+      const id = store.selectedEmployeeId();
+      if (!id) return [];
+      return store.permissionsByEmployeeId()[id] ?? [];
+    }),
+    selectedEmployeeStats: computed(() => {
+      const id = store.selectedEmployeeId();
+      if (!id) return null;
+      return store.statsByEmployeeId()[id] ?? null;
+    }),
+    selectedEmployeeRecentInspections: computed(() => {
+      const id = store.selectedEmployeeId();
+      if (!id) return [];
+      return store.recentInspectionsByEmployeeId()[id] ?? [];
+    }),
   })),
   withMethods((store, svc = inject(EmployeeService)) => ({
     loadEmployees: rxMethod<void>(
@@ -89,9 +116,67 @@ export const EmployeeStore = signalStore(
         switchMap(({ employeeId, role }) =>
           svc.grantLoginAccess(employeeId, { role }).pipe(
             switchMap(() => svc.getById(employeeId)),
+            switchMap((emp) =>
+              svc.getPermissions(employeeId).pipe(
+                tap((perms) =>
+                  patchState(store, (s) => ({
+                    permissionsByEmployeeId: { ...s.permissionsByEmployeeId, [employeeId]: perms },
+                  })),
+                ),
+                tap(() => patchState(store, upsertEntity(emp), { isLoading: false })),
+              ),
+            ),
             tapResponse({
-              next: (emp) => patchState(store, upsertEntity(emp), { isLoading: false }),
+              next: () => undefined,
               error: (e: Error) => patchState(store, { isLoading: false, error: e.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    loadPermissions: rxMethod<string>(
+      pipe(
+        switchMap((id) =>
+          svc.getPermissions(id).pipe(
+            tapResponse({
+              next: (perms) =>
+                patchState(store, (s) => ({
+                  permissionsByEmployeeId: { ...s.permissionsByEmployeeId, [id]: perms },
+                })),
+              error: (e: Error) => patchState(store, { error: e.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    loadStats: rxMethod<string>(
+      pipe(
+        switchMap((id) =>
+          svc.getStats(id).pipe(
+            tapResponse({
+              next: (stats) =>
+                patchState(store, (s) => ({
+                  statsByEmployeeId: { ...s.statsByEmployeeId, [id]: stats },
+                })),
+              error: (e: Error) => patchState(store, { error: e.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    loadRecentInspections: rxMethod<string>(
+      pipe(
+        switchMap((id) =>
+          svc.getRecentInspections(id).pipe(
+            tapResponse({
+              next: (items) =>
+                patchState(store, (s) => ({
+                  recentInspectionsByEmployeeId: {
+                    ...s.recentInspectionsByEmployeeId,
+                    [id]: items,
+                  },
+                })),
+              error: (e: Error) => patchState(store, { error: e.message }),
             }),
           ),
         ),

@@ -4,7 +4,7 @@ namespace CarScanner.Application.Abstraction.AI;
 
 public interface IVehicleDamageAnalyzer
 {
-    Task<DamageAnalysisResult> AnalyzeDamageAsync(
+    Task<DamageAnalysisOutcome> AnalyzeDamageAsync(
         DamageAnalysisRequest request,
         CancellationToken cancellationToken = default);
 }

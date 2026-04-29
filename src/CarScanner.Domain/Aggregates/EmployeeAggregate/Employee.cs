@@ -1,4 +1,5 @@
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
+using CarScanner.Domain.Aggregates.BranchAggregate;
 using CarScanner.Domain.Aggregates.EmployeeAggregate.Errors;
 using CarScanner.SharedKernel.Interfaces;
 using CarScanner.SharedKernel.Primitives;
@@ -19,6 +20,10 @@ public sealed partial class Employee : AggregateRoot, ITenantEntity
     public Guid? ApplicationUserId { get; private set; }
     public ApplicationUser? ApplicationUser { get; private set; }
 
+    // Optional assignment to a branch
+    public Guid? BranchId { get; private set; }
+    public Branch? Branch { get; private set; }
+
     public string FullName => $"{FirstName} {LastName}";
     public bool HasLoginAccess => ApplicationUserId.HasValue;
 
@@ -28,12 +33,14 @@ public sealed partial class Employee : AggregateRoot, ITenantEntity
         string firstName,
         string lastName,
         string email,
-        string? phone) : base()
+        string? phone,
+        Guid? branchId) : base()
     {
         FirstName = firstName;
         LastName = lastName;
         Email = email;
         Phone = phone;
+        BranchId = branchId;
         IsActive = true;
     }
 
@@ -41,7 +48,8 @@ public sealed partial class Employee : AggregateRoot, ITenantEntity
         string firstName,
         string lastName,
         string email,
-        string? phone)
+        string? phone,
+        Guid? branchId = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Result.Failure<Employee>(EmployeeDomainErrors.InvalidFirstName);
@@ -56,13 +64,15 @@ public sealed partial class Employee : AggregateRoot, ITenantEntity
             firstName.Trim(),
             lastName.Trim(),
             email.Trim().ToLowerInvariant(),
-            phone?.Trim());
+            phone?.Trim(),
+            branchId);
     }
 
     public Result Update(
         string firstName,
         string lastName,
-        string? phone)
+        string? phone,
+        Guid? branchId = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Result.Failure(EmployeeDomainErrors.InvalidFirstName);
@@ -73,6 +83,7 @@ public sealed partial class Employee : AggregateRoot, ITenantEntity
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         Phone = phone?.Trim();
+        BranchId = branchId;
 
         return Result.Success();
     }

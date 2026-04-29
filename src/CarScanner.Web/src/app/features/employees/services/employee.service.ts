@@ -7,6 +7,9 @@ import {
   CreateEmployeeRequest,
   CreateEmployeeResponse,
   Employee,
+  EmployeePermission,
+  EmployeeRecentInspection,
+  EmployeeStats,
   GrantLoginAccessRequest,
   GrantLoginAccessResponse,
   UpdateEmployeeRequest,
@@ -39,5 +42,20 @@ export class EmployeeService {
 
   grantLoginAccess(id: string, request: GrantLoginAccessRequest): Observable<GrantLoginAccessResponse> {
     return this.api.post<GrantLoginAccessResponse>(API_ENDPOINTS.EMPLOYEES.LOGIN_ACCESS(id), request);
+  }
+
+  getPermissions(id: string): Observable<EmployeePermission[]> {
+    return this.api.get<EmployeePermission[]>(API_ENDPOINTS.EMPLOYEES.PERMISSIONS(id));
+  }
+
+  getStats(id: string): Observable<EmployeeStats> {
+    return this.api.get<EmployeeStats>(API_ENDPOINTS.EMPLOYEES.STATS(id));
+  }
+
+  getRecentInspections(id: string, limit = 10): Observable<EmployeeRecentInspection[]> {
+    return this.api.get<EmployeeRecentInspection[]>(
+      API_ENDPOINTS.EMPLOYEES.RECENT_INSPECTIONS(id),
+      { limit },
+    );
   }
 }

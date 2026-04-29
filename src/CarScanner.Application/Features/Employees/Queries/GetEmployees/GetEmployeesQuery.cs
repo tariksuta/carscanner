@@ -16,4 +16,10 @@ public sealed record EmployeeDto(
     string? Phone,
     bool IsActive,
     DateTime CreatedOnUtc,
-    DateTime? ModifiedOnUtc);
+    DateTime? ModifiedOnUtc,
+    bool HasLoginAccess,
+    string? Role,
+    DateTime? LastSignInOnUtc,
+    Guid? BranchId,
+    string? BranchName,
+    string? BranchCity);
