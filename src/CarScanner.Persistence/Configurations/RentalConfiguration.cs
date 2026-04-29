@@ -33,6 +33,10 @@ public sealed class RentalConfiguration : IEntityTypeConfiguration<Rental>
         builder.Property(r => r.PickupMileage);
         builder.Property(r => r.ReturnMileage);
 
+        builder.Property(r => r.Price)
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
+
         builder.Property(r => r.Status)
             .IsRequired();
 

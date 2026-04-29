@@ -41,6 +41,12 @@ export const routes: Routes = [
         data: { breadcrumb: 'Employees' },
       },
       {
+        path: 'branches',
+        loadChildren: () =>
+          import('./features/branches/branches.routes').then((m) => m.BRANCH_ROUTES),
+        data: { breadcrumb: 'Poslovnice' },
+      },
+      {
         path: 'rentals',
         loadChildren: () =>
           import('./features/rentals/rentals.routes').then((m) => m.RENTAL_ROUTES),

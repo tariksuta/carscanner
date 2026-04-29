@@ -3,6 +3,7 @@ using CarScanner.Infrastructure;
 using CarScanner.Infrastructure.IdentityServices;
 using CarScanner.Persistence;
 using CarScanner.WebApi.Endpoints.Auth;
+using CarScanner.WebApi.Endpoints.Branches;
 using CarScanner.WebApi.Endpoints.Clients;
 using CarScanner.WebApi.Endpoints.DamageReports;
 using CarScanner.WebApi.Endpoints.Inspections;
@@ -75,6 +76,7 @@ app.MapRentalEndpoints();
 app.MapInspectionEndpoints();
 app.MapDamageReportEndpoints();
 app.MapEmployeeEndpoints();
+app.MapBranchEndpoints();
 app.MapProfileEndpoints();
 
 app.Run();

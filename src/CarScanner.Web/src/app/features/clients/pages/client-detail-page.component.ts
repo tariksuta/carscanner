@@ -3,27 +3,23 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ClientStore } from '../store/client.store';
+import { ClientActivityItem, ClientActivityType, ClientRentalRow } from '../models/client.model';
+import { RentalStatus } from '../../rentals/models/rental.model';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
-interface ActivityItem {
-  icon: string;
-  tone: 'accent' | 'active' | 'info' | 'danger';
-  title: string;
-  sub: string;
-  time: string;
+type BadgeVariant = 'success' | 'warning' | 'info' | 'danger' | 'default';
+type ActivityTone = 'accent' | 'active' | 'info' | 'danger';
+
+interface RentalRowVm extends ClientRentalRow {
+  statusLabel: string;
+  variant: BadgeVariant;
+  periodLabel: string;
 }
 
-interface RentalRow {
-  id: string;
-  vehicle: string;
-  plate: string;
-  start: string;
-  end: string;
-  status: string;
-  variant: 'success' | 'warning' | 'info' | 'danger' | 'default';
-  price: number;
-  hasDamage: boolean;
+interface ActivityVm extends ClientActivityItem {
+  icon: string;
+  tone: ActivityTone;
 }
 
 @Component({
@@ -40,14 +36,17 @@ interface RentalRow {
           </button>
           <span class="cs-avatar-xl">{{ initials() }}</span>
           <div class="cs-head-main">
-            <div class="cs-head-badges">
-              <app-status-badge label="Aktivan" variant="success" />
-              <app-status-badge label="VIP" variant="warning" />
-            </div>
+            @if (client.isVip) {
+              <div class="cs-head-badges">
+                <app-status-badge label="VIP" variant="warning" />
+              </div>
+            }
             <h1 class="cs-page-title">{{ client.firstName }} {{ client.lastName }}</h1>
             <p class="cs-page-sub">
-              Klijent od {{ client.createdOnUtc | date: 'MMM yyyy' }} · 12 rentala · Profitabilnost
-              <span class="cs-accent-text">A+</span>
+              Klijent od {{ client.createdOnUtc | date: 'MMM yyyy' }}
+              @if (stats(); as s) {
+                · {{ s.totalRentals }} {{ rentalWord(s.totalRentals) }}
+              }
             </p>
           </div>
           <div class="cs-head-actions">
@@ -64,10 +63,31 @@ interface RentalRow {
         </header>
 
         <section class="cs-grid-4">
-          <app-stat-card label="Ukupno rentala" value="12" [delta]="3" icon="key" footer="Zadnja 24 mjeseca" />
-          <app-stat-card label="Ukupna potrošnja" value="4,820 KM" [delta]="18" icon="wallet" footer="Prosjek 402 KM" />
-          <app-stat-card label="Prosjek trajanja" value="3.6" icon="clock" footer="Dana po rentalu" />
-          <app-stat-card label="Štete" value="1" deltaTone="danger" icon="shield-alert" footer="Od 12 povrata" />
+          <app-stat-card
+            label="Ukupno rentala"
+            [value]="(stats()?.totalRentals ?? 0).toString()"
+            icon="key"
+            footer="Svi do sada"
+          />
+          <app-stat-card
+            label="Ukupna potrošnja"
+            [value]="formatCurrency(stats()?.totalSpent ?? 0)"
+            icon="wallet"
+            footer="Suma svih rentala"
+          />
+          <app-stat-card
+            label="Prosjek trajanja"
+            [value]="(stats()?.averageDurationDays ?? 0).toString()"
+            icon="clock"
+            footer="Dana po rentalu"
+          />
+          <app-stat-card
+            label="Štete"
+            [value]="(stats()?.damageCount ?? 0).toString()"
+            deltaTone="danger"
+            icon="shield-alert"
+            [footer]="stats() ? 'Od ' + stats()!.totalRentals + ' rentala' : 'Nema podataka'"
+          />
         </section>
 
         <section class="cs-grid-2">
@@ -78,7 +98,7 @@ interface RentalRow {
             <dl class="cs-dl">
               <div><dt>Email</dt><dd>{{ client.email }}</dd></div>
               <div><dt>Telefon</dt><dd class="mono">{{ client.phone }}</dd></div>
-              <div><dt>JMBG</dt><dd class="mono muted">—</dd></div>
+              <div><dt>JMBG</dt><dd class="mono" [class.muted]="!client.jmbg">{{ client.jmbg || '—' }}</dd></div>
               <div>
                 <dt>Vozačka dozvola</dt>
                 <dd class="mono">
@@ -88,32 +108,64 @@ interface RentalRow {
                   }
                 </dd>
               </div>
-              <div><dt>Adresa</dt><dd>{{ client.address || '—' }}</dd></div>
               <div><dt>Država izdavanja</dt><dd>{{ client.driverLicenseCountry }}</dd></div>
+              <div><dt>Adresa</dt><dd>{{ client.address || '—' }}</dd></div>
+              <div><dt>Grad</dt><dd>{{ client.city || '—' }}</dd></div>
+              <div>
+                <dt>Datum rođenja</dt>
+                <dd>
+                  @if (client.birthDate) {
+                    {{ client.birthDate | date: 'dd.MM.yyyy' }}
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Marketing saglasnost</dt>
+                <dd>
+                  @if (client.marketingConsent) {
+                    <lucide-icon name="check" [size]="16" class="cs-consent-yes" />
+                  } @else {
+                    <lucide-icon name="x" [size]="16" class="cs-consent-no" />
+                  }
+                </dd>
+              </div>
             </dl>
           </article>
 
           <article class="cs-card">
             <header class="cs-card-head">
               <div class="cs-card-title">Aktivnost</div>
-              <span class="cs-card-sub">Zadnjih 30 dana</span>
+              <span class="cs-card-sub">Zadnji događaji</span>
             </header>
             <div class="cs-activity">
-              @for (a of activity(); track a.title) {
+              @for (a of activity(); track a.timestamp + a.type) {
                 <div class="cs-activity-row">
                   <div class="cs-activity-icon" [attr.data-tone]="a.tone">
                     <lucide-icon [name]="a.icon" [size]="14" />
                   </div>
                   <div class="cs-activity-meta">
                     <div class="cs-activity-title">{{ a.title }}</div>
-                    <div class="cs-activity-sub">{{ a.sub }}</div>
+                    <div class="cs-activity-sub">{{ a.subtitle }}</div>
                   </div>
-                  <div class="cs-activity-time mono">{{ a.time }}</div>
+                  <div class="cs-activity-time mono">{{ a.timestamp | date: 'dd.MM.' }}</div>
                 </div>
+              } @empty {
+                <div class="cs-empty-row">Nema evidentirane aktivnosti</div>
               }
             </div>
           </article>
         </section>
+
+        @if (client.internalNote) {
+          <article class="cs-card">
+            <header class="cs-card-head">
+              <div class="cs-card-title">Interna napomena</div>
+            </header>
+            <div class="cs-note">{{ client.internalNote }}</div>
+          </article>
+        }
 
         <article class="cs-card">
           <header class="cs-card-head">
@@ -134,21 +186,25 @@ interface RentalRow {
               <tbody>
                 @for (r of rentals(); track r.id) {
                   <tr (click)="openRental(r.id)">
-                    <td class="mono muted">{{ r.id }}</td>
+                    <td class="mono muted">{{ r.id.slice(0, 8) }}</td>
                     <td>
-                      <div class="cs-cell-primary">{{ r.vehicle }}</div>
-                      <div class="cs-cell-secondary mono">{{ r.plate }}</div>
+                      <div class="cs-cell-primary">{{ r.vehicleLabel }}</div>
+                      <div class="cs-cell-secondary mono">{{ r.licensePlate }}</div>
                     </td>
-                    <td class="mono">{{ r.start }} → {{ r.end }}</td>
+                    <td class="mono">{{ r.periodLabel }}</td>
                     <td>
                       <div class="cs-status-cell">
-                        <app-status-badge [label]="r.status" [variant]="r.variant" />
+                        <app-status-badge [label]="r.statusLabel" [variant]="r.variant" />
                         @if (r.hasDamage) {
                           <span class="cs-damage-dot" title="Šteta"></span>
                         }
                       </div>
                     </td>
-                    <td style="text-align: right" class="mono cs-price">{{ r.price | number }} KM</td>
+                    <td style="text-align: right" class="mono cs-price">{{ r.price | number: '1.0-2' }} KM</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="cs-empty-row">Nema rentala za ovog klijenta</td>
                   </tr>
                 }
               </tbody>
@@ -224,10 +280,6 @@ interface RentalRow {
         font-size: 13px;
         color: var(--cs-text-tertiary);
         margin: 4px 0 0;
-      }
-      .cs-accent-text {
-        color: var(--cs-accent);
-        font-weight: 600;
       }
       .cs-head-actions {
         display: flex;
@@ -330,6 +382,20 @@ interface RentalRow {
         margin: 0;
         text-align: right;
       }
+      .cs-consent-yes {
+        color: var(--cs-status-active);
+      }
+      .cs-consent-no {
+        color: var(--cs-text-quaternary);
+      }
+
+      .cs-note {
+        padding: 14px 20px;
+        font-size: 13px;
+        color: var(--cs-text-secondary);
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
 
       .cs-activity {
         display: flex;
@@ -388,6 +454,12 @@ interface RentalRow {
         font-size: 11px;
         color: var(--cs-text-quaternary);
         flex-shrink: 0;
+      }
+      .cs-empty-row {
+        padding: 20px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--cs-text-tertiary);
       }
 
       .cs-table-wrap {
@@ -475,23 +547,30 @@ export class ClientDetailPageComponent implements OnInit {
     return `${c.firstName?.[0] ?? ''}${c.lastName?.[0] ?? ''}`.toUpperCase() || '?';
   });
 
-  readonly activity = computed<ActivityItem[]>(() => [
-    { icon: 'key', tone: 'accent', title: 'Rental započet', sub: 'BMW 320d · R-2041 · Baščaršija', time: 'prije 2d' },
-    { icon: 'check', tone: 'active', title: 'Rental završen', sub: 'Renault Clio · R-2039 · bez štete', time: 'prije 5d' },
-    { icon: 'shield-check', tone: 'info', title: 'Verifikacija identiteta', sub: 'Vozačka dozvola · OCR match 98%', time: 'prije 12d' },
-    { icon: 'alert-triangle', tone: 'danger', title: 'Naplaćena šteta', sub: 'DR-1087 · 180 KM · osiguranje', time: 'prije 45d' },
-  ]);
+  readonly details = computed(() => this.store.selectedClientDetails());
+  readonly stats = computed(() => this.details()?.stats ?? null);
 
-  readonly rentals = computed<RentalRow[]>(() => [
-    { id: 'R-2041', vehicle: 'BMW 320d', plate: 'A12-E-345', start: '14.01.', end: '18.01.', status: 'Aktivan', variant: 'success', price: 480, hasDamage: false },
-    { id: 'R-2039', vehicle: 'Renault Clio', plate: 'E10-O-456', start: '10.01.', end: '13.01.', status: 'Završen', variant: 'default', price: 180, hasDamage: false },
-    { id: 'R-2012', vehicle: 'Škoda Octavia', plate: 'T77-K-221', start: '14.12.', end: '18.12.', status: 'Završen', variant: 'default', price: 320, hasDamage: true },
-  ]);
+  readonly activity = computed<ActivityVm[]>(() =>
+    (this.details()?.activity ?? []).map((a) => ({
+      ...a,
+      icon: this.iconForActivity(a.type),
+      tone: this.toneForActivity(a.type),
+    })),
+  );
+
+  readonly rentals = computed<RentalRowVm[]>(() =>
+    (this.details()?.recentRentals ?? []).map((r) => ({
+      ...r,
+      statusLabel: this.labelForStatus(r.status),
+      variant: this.variantForStatus(r.status),
+      periodLabel: this.formatPeriod(r.pickupDate, r.actualReturnDate, r.expectedReturnDate),
+    })),
+  );
 
   ngOnInit(): void {
     const id = this.id();
     this.store.selectClient(id);
-    this.store.loadClientById(id);
+    this.store.loadClientDetails(id);
   }
 
   onEdit(): void {
@@ -505,5 +584,90 @@ export class ClientDetailPageComponent implements OnInit {
   }
   goBack(): void {
     this.router.navigate(['/clients']);
+  }
+
+  protected rentalWord(count: number): string {
+    if (count === 1) return 'rental';
+    return 'rentala';
+  }
+
+  protected formatCurrency(value: number): string {
+    return `${value.toLocaleString('bs-BA', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KM`;
+  }
+
+  private iconForActivity(type: ClientActivityType): string {
+    switch (type) {
+      case ClientActivityType.RentalCreated:
+        return 'calendar';
+      case ClientActivityType.RentalStarted:
+        return 'key';
+      case ClientActivityType.RentalCompleted:
+        return 'check';
+      case ClientActivityType.DamageDetected:
+        return 'alert-triangle';
+    }
+  }
+
+  private toneForActivity(type: ClientActivityType): ActivityTone {
+    switch (type) {
+      case ClientActivityType.RentalCreated:
+        return 'info';
+      case ClientActivityType.RentalStarted:
+        return 'accent';
+      case ClientActivityType.RentalCompleted:
+        return 'active';
+      case ClientActivityType.DamageDetected:
+        return 'danger';
+    }
+  }
+
+  private labelForStatus(status: number): string {
+    switch (status as RentalStatus) {
+      case RentalStatus.Pending:
+        return 'Rezervisan';
+      case RentalStatus.PickupInProgress:
+        return 'Preuzimanje';
+      case RentalStatus.Active:
+        return 'Aktivan';
+      case RentalStatus.ReturnInProgress:
+        return 'Povrat';
+      case RentalStatus.Completed:
+        return 'Završen';
+      case RentalStatus.Cancelled:
+        return 'Otkazan';
+      default:
+        return '—';
+    }
+  }
+
+  private variantForStatus(status: number): BadgeVariant {
+    switch (status as RentalStatus) {
+      case RentalStatus.Active:
+        return 'success';
+      case RentalStatus.PickupInProgress:
+      case RentalStatus.ReturnInProgress:
+        return 'warning';
+      case RentalStatus.Pending:
+        return 'info';
+      case RentalStatus.Cancelled:
+        return 'danger';
+      case RentalStatus.Completed:
+      default:
+        return 'default';
+    }
+  }
+
+  private formatPeriod(pickup: string | null, actualReturn: string | null, expectedReturn: string): string {
+    const start = pickup ? this.shortDate(pickup) : '—';
+    const end = actualReturn ? this.shortDate(actualReturn) : this.shortDate(expectedReturn);
+    return `${start} → ${end}`;
+  }
+
+  private shortDate(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}.${mm}.`;
   }
 }

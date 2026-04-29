@@ -7,6 +7,7 @@ public sealed record CreateRentalCommand(
     Guid VehicleId,
     Guid ClientId,
     DateTime ExpectedReturnDate,
+    decimal Price,
     string? Notes) : ICommand<Result<CreateRentalCommandResult>>;
 
 public sealed record CreateRentalCommandResult(Guid RentalId);

@@ -30,6 +30,7 @@ public sealed class GetRentalByIdQueryHandler(IRentalRepository rentalRepository
             rental.ActualReturnDate,
             rental.PickupMileage,
             rental.ReturnMileage,
+            rental.Price,
             rental.Status,
             rental.Notes);
     }

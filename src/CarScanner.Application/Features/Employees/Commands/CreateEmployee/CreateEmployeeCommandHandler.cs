@@ -23,7 +23,8 @@ public sealed class CreateEmployeeCommandHandler(IEmployeeRepository employeeRep
             request.FirstName,
             request.LastName,
             request.Email,
-            request.Phone);
+            request.Phone,
+            request.BranchId);
 
         if (employeeResult.IsFailure)
             return Result.Failure<CreateEmployeeCommandResult>(employeeResult.Error);

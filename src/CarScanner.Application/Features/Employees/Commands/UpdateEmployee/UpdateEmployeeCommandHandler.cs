@@ -20,6 +20,7 @@ public sealed class UpdateEmployeeCommandHandler(
         return employee.Update(
             request.FirstName,
             request.LastName,
-            request.Phone);
+            request.Phone,
+            request.BranchId);
     }
 }

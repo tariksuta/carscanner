@@ -1,6 +1,7 @@
 using CarScanner.Application.Abstraction.Tenant;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Entities;
+using CarScanner.Domain.Aggregates.BranchAggregate;
 using CarScanner.Domain.Aggregates.ClientAggregate;
 using CarScanner.Domain.Aggregates.DamageReportAggregate;
 using CarScanner.Domain.Aggregates.DamageReportAggregate.Entities;
@@ -37,6 +38,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Rental> Rentals => Set<Rental>();
     public DbSet<VehicleInspection> VehicleInspections => Set<VehicleInspection>();
     public DbSet<InspectionPhoto> InspectionPhotos => Set<InspectionPhoto>();
@@ -53,6 +55,7 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<Vehicle>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<Client>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<Employee>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
+            modelBuilder.Entity<Branch>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<Rental>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<VehicleInspection>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<DamageReport>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);

@@ -1,4 +1,5 @@
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Repository;
+using CarScanner.Domain.Aggregates.BranchAggregate.Repository;
 using CarScanner.Domain.Aggregates.ClientAggregate.Repository;
 using CarScanner.Domain.Aggregates.DamageReportAggregate.Repository;
 using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IVehicleRepository, VehicleRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<IBranchRepository, BranchRepository>();
         services.AddScoped<IRentalRepository, RentalRepository>();
         services.AddScoped<IVehicleInspectionRepository, VehicleInspectionRepository>();
         services.AddScoped<IDamageReportRepository, DamageReportRepository>();

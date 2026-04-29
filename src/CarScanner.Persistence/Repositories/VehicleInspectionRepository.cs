@@ -43,4 +43,12 @@ public sealed class VehicleInspectionRepository(ApplicationDbContext dbContext)
             .OrderByDescending(i => i.CreatedOnUtc)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<VehicleInspection>> GetByEmployeeIdAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(i => i.EmployeeId == employeeId)
+            .OrderByDescending(i => i.CreatedOnUtc)
+            .ToListAsync(cancellationToken);
+    }
 }

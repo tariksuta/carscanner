@@ -1,6 +1,7 @@
 using CarScanner.Application.Features.Clients.Commands.CreateClient;
 using CarScanner.Application.Features.Clients.Commands.UpdateClient;
 using CarScanner.Application.Features.Clients.Queries.GetClientById;
+using CarScanner.Application.Features.Clients.Queries.GetClientDetails;
 using CarScanner.Application.Features.Clients.Queries.GetClients;
 using MediatR;
 
@@ -15,10 +16,24 @@ public static class ClientEndpoints
 
         group.MapGet("/", GetClients);
         group.MapGet("/{clientId:guid}", GetClientById);
+        group.MapGet("/{clientId:guid}/details", GetClientDetails);
         group.MapPost("/", CreateClient);
         group.MapPut("/{clientId:guid}", UpdateClient);
 
         return app;
+    }
+
+    private static async Task<IResult> GetClientDetails(
+        Guid clientId,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetClientDetailsQuery(clientId);
+        var result = await sender.Send(query, cancellationToken);
+
+        return result.Match(
+            success => Results.Ok(success),
+            error => Results.NotFound(error));
     }
 
     private static async Task<IResult> GetClients(

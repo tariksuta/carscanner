@@ -7,6 +7,7 @@ public sealed record CreateEmployeeCommand(
     string FirstName,
     string LastName,
     string Email,
-    string? Phone) : ICommand<Result<CreateEmployeeCommandResult>>;
+    string? Phone,
+    Guid? BranchId = null) : ICommand<Result<CreateEmployeeCommandResult>>;
 
 public sealed record CreateEmployeeCommandResult(Guid EmployeeId);

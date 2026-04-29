@@ -51,5 +51,15 @@ public sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(e => e.ApplicationUserId);
+
+        // Optional relationship to Branch
+        builder.Property(e => e.BranchId);
+
+        builder.HasOne(e => e.Branch)
+            .WithMany()
+            .HasForeignKey(e => e.BranchId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.BranchId);
     }
 }

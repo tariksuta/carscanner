@@ -1,4 +1,6 @@
+using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
 using CarScanner.Domain.Aggregates.InspectionAggregate;
+using CarScanner.Domain.Aggregates.InspectionAggregate.Errors;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Repository;
 using CarScanner.Domain.Aggregates.RentalAggregate.Errors;
 using CarScanner.Domain.Aggregates.RentalAggregate.Repository;
@@ -10,7 +12,8 @@ namespace CarScanner.Application.Features.Inspections.Commands.CreateInspection;
 
 public sealed class CreateInspectionCommandHandler(
     IVehicleInspectionRepository inspectionRepository,
-    IRentalRepository rentalRepository)
+    IRentalRepository rentalRepository,
+    IEmployeeRepository employeeRepository)
     : ICommandHandler<CreateInspectionCommand, Result<CreateInspectionCommandResult>>
 {
     public async Task<Result<CreateInspectionCommandResult>> Handle(
@@ -20,6 +23,10 @@ public sealed class CreateInspectionCommandHandler(
         var rental = await rentalRepository.GetByIdAsync(request.RentalId, cancellationToken);
         if (rental is null)
             return Result.Failure<CreateInspectionCommandResult>(RentalDomainErrors.NotFound(request.RentalId));
+
+        var employeeExists = await employeeRepository.ExistsByIdAsync(request.EmployeeId, cancellationToken);
+        if (!employeeExists)
+            return Result.Failure<CreateInspectionCommandResult>(InspectionDomainErrors.EmployeeNotFound(request.EmployeeId));
 
         if (request.InspectionType == InspectionType.Pickup)
         {

@@ -10,4 +10,5 @@ public interface IVehicleInspectionRepository : IRepository<VehicleInspection, G
     Task<IReadOnlyList<VehicleInspection>> GetByRentalIdAsync(Guid rentalId, CancellationToken cancellationToken = default);
     Task<VehicleInspection?> GetByRentalIdAndTypeAsync(Guid rentalId, InspectionType type, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<VehicleInspection>> GetByVehicleIdAsync(Guid vehicleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<VehicleInspection>> GetByEmployeeIdAsync(Guid employeeId, CancellationToken cancellationToken = default);
 }

@@ -1,16 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { EmployeeStore } from '../store/employee.store';
 import { EmployeeService } from '../services/employee.service';
+import {
+  EMPLOYEE_MODULE_LABELS,
+  EmployeeRole,
+  INSPECTION_TYPE_LABELS,
+} from '../models/employee.model';
+import { GrantLoginDialogComponent } from '../components/grant-login-dialog.component';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
 type EmployeeStatus = 'active' | 'field' | 'offline';
 
-interface Permission {
-  module: string;
+interface PermissionRow {
+  moduleLabel: string;
   view: boolean;
   edit: boolean;
   delete: boolean;
@@ -23,13 +29,14 @@ interface InspectionRow {
   when: string;
   duration: string;
   damage: boolean;
+  completed: boolean;
 }
 
 @Component({
   selector: 'app-employee-detail-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, LucideAngularModule, StatCardComponent, StatusBadgeComponent],
+  imports: [DatePipe, LucideAngularModule, StatCardComponent, StatusBadgeComponent, GrantLoginDialogComponent],
   template: `
     <div class="cs-page">
       @if (store.selectedEmployee(); as emp) {
@@ -47,11 +54,16 @@ interface InspectionRow {
                 [label]="emp.isActive ? 'Aktivan' : 'Deaktiviran'"
                 [variant]="emp.isActive ? 'success' : 'danger'"
               />
-              <span class="cs-role-tag">Terenski inspektor</span>
+              @if (roleLabel(); as role) {
+                <span class="cs-role-tag">{{ role }}</span>
+              }
             </div>
             <h1 class="cs-page-title">{{ emp.firstName }} {{ emp.lastName }}</h1>
             <p class="cs-page-sub">
-              Sarajevo · <span class="cs-accent-text">{{ statusLabel() }}</span>
+              @if (emp.branchCity) {
+                {{ emp.branchCity }} ·
+              }
+              <span class="cs-accent-text">{{ statusLabel() }}</span>
             </p>
           </div>
           <div class="cs-head-actions">
@@ -61,6 +73,11 @@ interface InspectionRow {
             <button type="button" class="cs-btn-ghost" (click)="onEdit()">
               <lucide-icon name="pencil" [size]="14" /> Uredi
             </button>
+            @if (!emp.applicationUserId && emp.isActive) {
+              <button type="button" class="cs-btn-ghost" (click)="onGrantLoginAccess()">
+                <lucide-icon name="key" [size]="14" /> Dodijeli login pristup
+              </button>
+            }
             @if (emp.isActive) {
               <button type="button" class="cs-btn-danger" (click)="onDeactivate()">
                 <lucide-icon name="user-x" [size]="14" /> Deaktiviraj
@@ -70,10 +87,31 @@ interface InspectionRow {
         </header>
 
         <section class="cs-grid-4">
-          <app-stat-card label="Inspekcija ukupno" value="184" [delta]="14" icon="clipboard-check" footer="Ovog mjeseca: 22" />
-          <app-stat-card label="Prosjek trajanja" value="6m 42s" icon="clock" footer="Tim: 8m 10s" />
-          <app-stat-card label="Ocjena" value="★ 4.8" icon="star" footer="Od 47 klijenata" />
-          <app-stat-card label="Stopa detekcije" value="38%" icon="shield-alert" footer="Povrati sa štetom" />
+          <app-stat-card
+            label="Inspekcija ukupno"
+            [value]="totalInspectionsValue()"
+            [delta]="monthDelta()"
+            icon="clipboard-check"
+            [footer]="thisMonthFooter()"
+          />
+          <app-stat-card
+            label="Prosjek trajanja"
+            [value]="avgDurationValue()"
+            icon="clock"
+            [footer]="teamAvgFooter()"
+          />
+          <app-stat-card
+            label="Završene"
+            [value]="completedRateValue()"
+            icon="check-circle"
+            [footer]="completedRateFooter()"
+          />
+          <app-stat-card
+            label="Stopa detekcije"
+            [value]="damageDetectionValue()"
+            icon="shield-alert"
+            [footer]="damageDetectionFooter()"
+          />
         </section>
 
         <section class="cs-grid-2">
@@ -84,11 +122,11 @@ interface InspectionRow {
             <dl class="cs-dl">
               <div><dt>Email</dt><dd>{{ emp.email }}</dd></div>
               <div><dt>Telefon</dt><dd class="mono">{{ emp.phone || '—' }}</dd></div>
-              <div><dt>Uloga</dt><dd>Terenski inspektor</dd></div>
-              <div><dt>Lokacija</dt><dd>Sarajevo · Baščaršija</dd></div>
+              <div><dt>Uloga</dt><dd>{{ roleLabel() ?? '—' }}</dd></div>
+              <div><dt>Lokacija</dt><dd>{{ locationLabel() }}</dd></div>
               <div><dt>U timu od</dt><dd class="mono">{{ emp.createdOnUtc | date: 'MMM yyyy' }}</dd></div>
-              <div><dt>Pristupni nivo</dt><dd>Inspector (Level 2)</dd></div>
-              <div><dt>Zadnja prijava</dt><dd class="mono muted">prije 12 min</dd></div>
+              <div><dt>Pristupni nivo</dt><dd>{{ accessLabel() }}</dd></div>
+              <div><dt>Zadnja prijava</dt><dd class="mono muted">{{ lastSignInLabel() }}</dd></div>
             </dl>
           </article>
 
@@ -108,12 +146,22 @@ interface InspectionRow {
                   </tr>
                 </thead>
                 <tbody>
-                  @for (p of permissions; track p.module) {
+                  @for (p of permissions(); track p.moduleLabel) {
                     <tr>
-                      <td>{{ p.module }}</td>
+                      <td>{{ p.moduleLabel }}</td>
                       <td><span class="cs-check" [class.on]="p.view"></span></td>
                       <td><span class="cs-check" [class.on]="p.edit"></span></td>
                       <td><span class="cs-check" [class.on]="p.delete"></span></td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="4" class="cs-perm-empty">
+                        @if (emp.hasLoginAccess) {
+                          Nema podataka o dozvolama
+                        } @else {
+                          Bez login pristupa — nema dodijeljenih dozvola
+                        }
+                      </td>
                     </tr>
                   }
                 </tbody>
@@ -141,7 +189,7 @@ interface InspectionRow {
               <tbody>
                 @for (i of inspections(); track i.id) {
                   <tr (click)="openInspection(i.id)">
-                    <td class="mono muted">{{ i.id }}</td>
+                    <td class="mono muted">{{ shortId(i.id) }}</td>
                     <td>
                       <app-status-badge
                         [label]="i.type"
@@ -159,6 +207,10 @@ interface InspectionRow {
                       }
                     </td>
                   </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="cs-perm-empty">Nema inspekcija</td>
+                  </tr>
                 }
               </tbody>
             </table>
@@ -168,6 +220,13 @@ interface InspectionRow {
         <p class="cs-empty">Zaposlenik nije pronađen</p>
       }
     </div>
+
+    <app-grant-login-dialog
+      [open]="grantDialogOpen()"
+      [employeeName]="grantDialogEmployeeName()"
+      (confirm)="onGrantConfirm($event)"
+      (cancel)="onGrantCancel()"
+    />
   `,
   styles: [
     `
@@ -435,6 +494,12 @@ interface InspectionRow {
         border-bottom: 2px solid var(--cs-accent);
         transform: rotate(45deg);
       }
+      .cs-perm-empty {
+        padding: 24px 20px;
+        text-align: center;
+        color: var(--cs-text-tertiary);
+        font-size: 12px;
+      }
 
       .cs-table-wrap {
         overflow-x: auto;
@@ -500,9 +565,10 @@ export class EmployeeDetailPageComponent implements OnInit {
 
   readonly statusKey = computed<EmployeeStatus>(() => {
     const e = this.store.selectedEmployee();
-    if (!e) return 'offline';
-    if (!e.isActive) return 'offline';
-    return 'active';
+    if (!e || !e.isActive || !e.hasLoginAccess) return 'offline';
+    if (!e.lastSignInOnUtc) return 'offline';
+    const ageMs = Date.now() - new Date(e.lastSignInOnUtc).getTime();
+    return ageMs < 5 * 60 * 1000 ? 'active' : 'offline';
   });
 
   readonly statusLabel = computed(() => {
@@ -516,27 +582,155 @@ export class EmployeeDetailPageComponent implements OnInit {
     }
   });
 
-  readonly permissions: Permission[] = [
-    { module: 'Vozila', view: true, edit: true, delete: false },
-    { module: 'Rentali', view: true, edit: true, delete: false },
-    { module: 'Inspekcije', view: true, edit: true, delete: true },
-    { module: 'Izvještaji šteta', view: true, edit: true, delete: false },
-    { module: 'Klijenti', view: true, edit: false, delete: false },
-    { module: 'Zaposlenici', view: false, edit: false, delete: false },
-    { module: 'Postavke sistema', view: false, edit: false, delete: false },
-  ];
+  readonly roleLabel = computed<string | null>(() => {
+    const e = this.store.selectedEmployee();
+    return e?.role ?? null;
+  });
 
-  readonly inspections = computed<InspectionRow[]>(() => [
-    { id: 'I-5525', type: 'Povrat', vehicle: 'Renault Clio', when: '14.01. 16:40', duration: '7m 12s', damage: true },
-    { id: 'I-5520', type: 'Preuzimanje', vehicle: 'Renault Clio', when: '10.01. 09:04', duration: '5m 58s', damage: false },
-    { id: 'I-5511', type: 'Povrat', vehicle: 'Škoda Octavia', when: '08.01. 18:02', duration: '6m 44s', damage: false },
-    { id: 'I-5507', type: 'Preuzimanje', vehicle: 'BMW 320d', when: '05.01. 10:15', duration: '8m 20s', damage: false },
-  ]);
+  readonly accessLabel = computed(() => {
+    const e = this.store.selectedEmployee();
+    if (!e) return '—';
+    return e.hasLoginAccess ? 'Sa pristupom' : 'Bez pristupa';
+  });
+
+  readonly locationLabel = computed(() => {
+    const e = this.store.selectedEmployee();
+    if (!e) return '—';
+    if (e.branchCity && e.branchName) return `${e.branchCity} · ${e.branchName}`;
+    return e.branchCity ?? e.branchName ?? '—';
+  });
+
+  readonly lastSignInLabel = computed(() => {
+    const e = this.store.selectedEmployee();
+    if (!e?.lastSignInOnUtc) return 'Nikada';
+    return this.formatRelativeTime(new Date(e.lastSignInOnUtc));
+  });
+
+  private formatRelativeTime(date: Date): string {
+    const diffMs = Date.now() - date.getTime();
+    if (diffMs < 0) return 'upravo sada';
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 60) return 'upravo sada';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `prije ${min} min`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `prije ${hr} h`;
+    const days = Math.floor(hr / 24);
+    if (days < 30) return `prije ${days} d`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `prije ${months} mj`;
+    const years = Math.floor(days / 365);
+    return `prije ${years} g`;
+  }
+
+  readonly permissions = computed<PermissionRow[]>(() =>
+    this.store.selectedEmployeePermissions().map((p) => ({
+      moduleLabel: EMPLOYEE_MODULE_LABELS[p.module] ?? p.module,
+      view: p.view,
+      edit: p.edit,
+      delete: p.delete,
+    })),
+  );
+
+  readonly totalInspectionsValue = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    return s ? s.totalInspections : '—';
+  });
+
+  readonly monthDelta = computed<number | null>(() => {
+    const s = this.store.selectedEmployeeStats();
+    return s?.monthOverMonthChangePercent ?? null;
+  });
+
+  readonly thisMonthFooter = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    if (!s) return null;
+    return `Ovog mjeseca: ${s.inspectionsThisMonth}`;
+  });
+
+  readonly avgDurationValue = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    return this.formatDuration(s?.averageDurationSeconds ?? null);
+  });
+
+  readonly teamAvgFooter = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    if (!s) return null;
+    return `Tim: ${this.formatDuration(s.teamAverageDurationSeconds)}`;
+  });
+
+  readonly completedRateValue = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    return this.formatPercent(s?.completedRatePercent ?? null);
+  });
+
+  readonly completedRateFooter = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    if (!s) return null;
+    return `Od ${s.totalInspections} inspekcija`;
+  });
+
+  readonly damageDetectionValue = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    return this.formatPercent(s?.damageDetectionRatePercent ?? null);
+  });
+
+  readonly damageDetectionFooter = computed(() => {
+    const s = this.store.selectedEmployeeStats();
+    if (!s) return null;
+    return `Povrati sa štetom: ${s.damageDetectionsCount}`;
+  });
+
+  private formatDuration(seconds: number | null): string {
+    if (seconds == null || seconds <= 0) return '—';
+    const total = Math.round(seconds);
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    if (m === 0) return `${s}s`;
+    return `${m}m ${s}s`;
+  }
+
+  private formatPercent(value: number | null): string {
+    if (value == null) return '—';
+    return `${value}%`;
+  }
+
+  readonly inspections = computed<InspectionRow[]>(() =>
+    this.store.selectedEmployeeRecentInspections().map((i) => {
+      const when = i.completedAt ?? i.createdOnUtc;
+      const vehicle = `${i.vehicleBrand} ${i.vehicleModel}`.trim();
+      return {
+        id: i.id,
+        type: INSPECTION_TYPE_LABELS[i.inspectionType] as 'Preuzimanje' | 'Povrat',
+        vehicle: vehicle || '—',
+        when: this.formatWhen(when),
+        duration: this.formatDuration(i.durationSeconds),
+        damage: i.hasDamage,
+        completed: i.status === 'Completed',
+      };
+    }),
+  );
+
+  shortId(id: string): string {
+    return `I-${id.slice(-4).toUpperCase()}`;
+  }
+
+  private formatWhen(iso: string): string {
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return `${dd}.${mm}. ${hh}:${mi}`;
+  }
 
   ngOnInit(): void {
     const id = this.id();
     this.store.selectEmployee(id);
     this.store.loadEmployeeById(id);
+    this.store.loadPermissions(id);
+    this.store.loadStats(id);
+    this.store.loadRecentInspections(id);
   }
 
   onEdit(): void {
@@ -545,6 +739,25 @@ export class EmployeeDetailPageComponent implements OnInit {
 
   onDeactivate(): void {
     // TODO: backend ne podržava deactivate (UpdateEmployeeRequest nema IsActive)
+  }
+
+  readonly grantDialogOpen = signal(false);
+  readonly grantDialogEmployeeName = computed(() => {
+    const e = this.store.selectedEmployee();
+    return e ? `${e.firstName} ${e.lastName}` : '';
+  });
+
+  onGrantLoginAccess(): void {
+    this.grantDialogOpen.set(true);
+  }
+
+  onGrantConfirm(role: EmployeeRole): void {
+    this.grantDialogOpen.set(false);
+    this.store.grantLoginAccess({ employeeId: this.id(), role });
+  }
+
+  onGrantCancel(): void {
+    this.grantDialogOpen.set(false);
   }
 
   openInspection(id: string): void {

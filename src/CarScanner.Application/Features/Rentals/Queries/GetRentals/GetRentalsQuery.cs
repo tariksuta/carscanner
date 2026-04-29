@@ -21,5 +21,6 @@ public sealed record RentalDto(
     DateTime? ActualReturnDate,
     int? PickupMileage,
     int? ReturnMileage,
+    decimal Price,
     RentalStatus Status,
     string? Notes);

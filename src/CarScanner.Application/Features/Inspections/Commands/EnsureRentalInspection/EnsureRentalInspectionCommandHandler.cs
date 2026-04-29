@@ -1,5 +1,7 @@
 using CarScanner.Application.Features.Inspections.Queries.GetInspectionById;
+using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
 using CarScanner.Domain.Aggregates.InspectionAggregate;
+using CarScanner.Domain.Aggregates.InspectionAggregate.Errors;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Repository;
 using CarScanner.Domain.Aggregates.RentalAggregate.Errors;
 using CarScanner.Domain.Aggregates.RentalAggregate.Repository;
@@ -11,7 +13,8 @@ namespace CarScanner.Application.Features.Inspections.Commands.EnsureRentalInspe
 
 public sealed class EnsureRentalInspectionCommandHandler(
     IVehicleInspectionRepository inspectionRepository,
-    IRentalRepository rentalRepository)
+    IRentalRepository rentalRepository,
+    IEmployeeRepository employeeRepository)
     : ICommandHandler<EnsureRentalInspectionCommand, Result<InspectionDetailDto>>
 {
     public async Task<Result<InspectionDetailDto>> Handle(
@@ -27,6 +30,10 @@ public sealed class EnsureRentalInspectionCommandHandler(
         var rental = await rentalRepository.GetByIdAsync(request.RentalId, cancellationToken);
         if (rental is null)
             return Result.Failure<InspectionDetailDto>(RentalDomainErrors.NotFound(request.RentalId));
+
+        var employeeExists = await employeeRepository.ExistsByIdAsync(request.EmployeeId, cancellationToken);
+        if (!employeeExists)
+            return Result.Failure<InspectionDetailDto>(InspectionDomainErrors.EmployeeNotFound(request.EmployeeId));
 
         if (request.InspectionType == InspectionType.Pickup)
         {

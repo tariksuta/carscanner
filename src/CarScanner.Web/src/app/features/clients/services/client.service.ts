@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { PagedResult, PaginationParams } from '../../../core/models/paged-result.model';
-import { Client, CreateClientRequest, CreateClientResponse, UpdateClientRequest } from '../models/client.model';
+import { Client, ClientDetails, CreateClientRequest, CreateClientResponse, UpdateClientRequest } from '../models/client.model';
 
 @Injectable({ providedIn: 'root' })
 export class ClientService {
@@ -20,6 +20,10 @@ export class ClientService {
 
   getById(id: string): Observable<Client> {
     return this.api.get<Client>(API_ENDPOINTS.CLIENTS.BY_ID(id));
+  }
+
+  getDetails(id: string): Observable<ClientDetails> {
+    return this.api.get<ClientDetails>(API_ENDPOINTS.CLIENTS.DETAILS(id));
   }
 
   create(request: CreateClientRequest): Observable<CreateClientResponse> {

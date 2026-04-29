@@ -10,12 +10,15 @@ import { EmployeeService } from '../services/employee.service';
 import { EmployeeStore } from '../store/employee.store';
 import { FormShellComponent } from '../../../shared/components/form-shell/form-shell.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
+import { BranchService } from '../../branches/services/branch.service';
+import { Branch } from '../../branches/models/branch.model';
 
 interface EmployeeFormState {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
+  branchId: string;
 }
 
 @Component({
@@ -48,6 +51,14 @@ interface EmployeeFormState {
           </app-form-field>
           <app-form-field label="Telefon">
             <input type="tel" data-mono="true" [value]="state().phone" (input)="upd('phone', $any($event.target).value)" />
+          </app-form-field>
+          <app-form-field label="Poslovnica">
+            <select [value]="state().branchId" (change)="upd('branchId', $any($event.target).value)">
+              <option value="">— Bez poslovnice —</option>
+              @for (b of branches(); track b.id) {
+                <option [value]="b.id">{{ b.city }} · {{ b.name }}</option>
+              }
+            </select>
           </app-form-field>
         </div>
       </section>
@@ -92,15 +103,18 @@ export class EmployeeFormComponent implements OnInit {
 
   private readonly svc = inject(EmployeeService);
   private readonly store = inject(EmployeeStore);
+  private readonly branchSvc = inject(BranchService);
   private readonly router = inject(Router);
 
   readonly submitting = signal(false);
+  readonly branches = signal<Branch[]>([]);
 
   readonly state = signal<EmployeeFormState>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
+    branchId: '',
   });
 
   readonly canSubmit = computed(() => {
@@ -109,6 +123,10 @@ export class EmployeeFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.branchSvc.getAll(true).subscribe({
+      next: (list) => this.branches.set(list),
+    });
+
     const e = this.employee();
     if (e) {
       this.state.set({
@@ -116,6 +134,7 @@ export class EmployeeFormComponent implements OnInit {
         lastName: e.lastName,
         email: e.email,
         phone: e.phone ?? '',
+        branchId: e.branchId ?? '',
       });
     }
   }
@@ -127,12 +146,14 @@ export class EmployeeFormComponent implements OnInit {
   submit(): void {
     if (!this.canSubmit() || this.submitting()) return;
     const s = this.state();
+    const branchId = s.branchId || undefined;
 
     if (this.mode() === 'edit' && this.employee()?.id) {
       const req: UpdateEmployeeRequest = {
         firstName: s.firstName,
         lastName: s.lastName,
         phone: s.phone || undefined,
+        branchId,
       };
       this.submitting.set(true);
       this.svc.update(this.employee()!.id, req).subscribe({
@@ -150,6 +171,7 @@ export class EmployeeFormComponent implements OnInit {
       lastName: s.lastName,
       email: s.email,
       phone: s.phone || undefined,
+      branchId,
     };
     this.submitting.set(true);
     this.svc.create(req).subscribe({

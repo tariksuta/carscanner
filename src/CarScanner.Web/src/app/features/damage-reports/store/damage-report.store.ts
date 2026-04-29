@@ -1,6 +1,6 @@
 import { computed, inject } from '@angular/core';
 import { signalStore, withComputed, withMethods, withState, patchState } from '@ngrx/signals';
-import { withEntities, setAllEntities } from '@ngrx/signals/entities';
+import { withEntities, setAllEntities, upsertEntity } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { pipe, switchMap, tap } from 'rxjs';
@@ -73,5 +73,18 @@ export const DamageReportStore = signalStore(
     selectReport(id: string | null): void {
       patchState(store, { selectedReportId: id });
     },
+    loadReportById: rxMethod<string>(
+      pipe(
+        tap(() => patchState(store, { isLoading: true, error: null })),
+        switchMap((id) =>
+          reportService.getById(id).pipe(
+            tapResponse({
+              next: (report) => patchState(store, upsertEntity(report), { isLoading: false }),
+              error: (error: Error) => patchState(store, { isLoading: false, error: error.message }),
+            }),
+          ),
+        ),
+      ),
+    ),
   })),
 );

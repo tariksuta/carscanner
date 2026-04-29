@@ -20,6 +20,7 @@ public sealed class Rental : AggregateRoot, ITenantEntity
     public DateTime? ActualReturnDate { get; private set; }
     public int? PickupMileage { get; private set; }
     public int? ReturnMileage { get; private set; }
+    public decimal Price { get; private set; }
     public RentalStatus Status { get; private set; }
     public string? Notes { get; private set; }
 
@@ -29,11 +30,13 @@ public sealed class Rental : AggregateRoot, ITenantEntity
         Guid vehicleId,
         Guid clientId,
         DateTime expectedReturnDate,
+        decimal price,
         string? notes) : base()
     {
         VehicleId = vehicleId;
         ClientId = clientId;
         ExpectedReturnDate = expectedReturnDate;
+        Price = price;
         Notes = notes;
         Status = RentalStatus.Pending;
     }
@@ -42,12 +45,16 @@ public sealed class Rental : AggregateRoot, ITenantEntity
         Guid vehicleId,
         Guid clientId,
         DateTime expectedReturnDate,
+        decimal price,
         string? notes = null)
     {
         if (expectedReturnDate <= DateTime.UtcNow)
             return Result.Failure<Rental>(RentalDomainErrors.InvalidReturnDate);
 
-        var rental = new Rental(vehicleId, clientId, expectedReturnDate, notes);
+        if (price < 0)
+            return Result.Failure<Rental>(RentalDomainErrors.InvalidPrice);
+
+        var rental = new Rental(vehicleId, clientId, expectedReturnDate, price, notes);
         rental.RaiseDomainEvent(new RentalCreatedDomainEvent(rental.Id, vehicleId, clientId));
 
         return rental;

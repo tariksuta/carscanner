@@ -28,6 +28,9 @@ public static class RentalDomainErrors
     public static readonly DomainError InvalidReturnDate =
         new("Rental.InvalidReturnDate", "Expected return date must be after pickup date.");
 
+    public static readonly DomainError InvalidPrice =
+        new("Rental.InvalidPrice", "Price must be greater than or equal to zero.");
+
     public static readonly DomainError PickupInspectionRequired =
         new("Rental.PickupInspectionRequired", "Pickup inspection must be completed before starting the rental.");
 

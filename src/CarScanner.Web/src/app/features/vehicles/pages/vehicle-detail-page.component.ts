@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { concat } from 'rxjs';
 import { last } from 'rxjs/operators';
@@ -6,12 +15,16 @@ import { LucideAngularModule } from 'lucide-angular';
 import { VehicleCardComponent } from '../components/vehicle-card.component';
 import { VehicleService } from '../services/vehicle.service';
 import { VehicleDetail, VehicleImage } from '../models/vehicle.model';
+import {
+  ImageLightboxComponent,
+  LightboxImage,
+} from '../../../shared/components/image-lightbox/image-lightbox.component';
 
 @Component({
   selector: 'app-vehicle-detail-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [VehicleCardComponent, LucideAngularModule],
+  imports: [VehicleCardComponent, LucideAngularModule, ImageLightboxComponent],
   template: `
     <div class="cs-page">
       <header class="cs-page-head">
@@ -38,31 +51,80 @@ import { VehicleDetail, VehicleImage } from '../models/vehicle.model';
             <span class="cs-muted">{{ detail.images.length }} / 10 slika</span>
           </div>
 
-          @if (detail.images.length > 0) {
-            <div class="cs-img-grid">
-              @for (image of detail.images; track image.id) {
-                <div class="cs-img-tile" [class.primary]="image.isPrimary">
-                  <img [src]="image.imageUrl" alt="" />
-                  <div class="cs-img-actions">
-                    @if (!image.isPrimary) {
-                      <button type="button" (click)="onSetPrimary(image)" [disabled]="isUploading()">
-                        Postavi kao glavnu
-                      </button>
-                    }
-                    <button
-                      type="button"
-                      class="danger"
-                      (click)="onDeleteImage(image)"
-                      [disabled]="isUploading()"
-                    >
-                      Obriši
-                    </button>
-                  </div>
-                  @if (image.isPrimary) {
-                    <span class="cs-primary-tag">Glavna</span>
-                  }
-                </div>
+          @if (detail.images.length > 0 && currentImage(); as current) {
+            <div class="cs-carousel">
+              <button
+                type="button"
+                class="cs-carousel-hero"
+                (click)="openLightbox(carouselIndex())"
+                aria-label="Otvori pregled"
+              >
+                <img [src]="current.imageUrl" alt="" />
+                @if (current.isPrimary) {
+                  <span class="cs-primary-tag">Glavna</span>
+                }
+                <span class="cs-carousel-count mono">
+                  {{ carouselIndex() + 1 }} / {{ detail.images.length }}
+                </span>
+              </button>
+
+              @if (detail.images.length > 1) {
+                <button
+                  type="button"
+                  class="cs-carousel-nav left"
+                  aria-label="Prethodna"
+                  (click)="prevImage()"
+                >
+                  <lucide-icon name="chevron-left" [size]="22" />
+                </button>
+                <button
+                  type="button"
+                  class="cs-carousel-nav right"
+                  aria-label="Sljedeća"
+                  (click)="nextImage()"
+                >
+                  <lucide-icon name="chevron-right" [size]="22" />
+                </button>
               }
+            </div>
+
+            @if (detail.images.length > 1) {
+              <div class="cs-thumbs">
+                @for (image of detail.images; track image.id; let i = $index) {
+                  <button
+                    type="button"
+                    class="cs-thumb"
+                    [class.active]="i === carouselIndex()"
+                    (click)="carouselIndex.set(i)"
+                  >
+                    <img [src]="image.imageUrl" alt="" />
+                    @if (image.isPrimary) {
+                      <span class="cs-thumb-primary" aria-label="Glavna"></span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+
+            <div class="cs-carousel-actions">
+              @if (!current.isPrimary) {
+                <button
+                  type="button"
+                  class="cs-btn-ghost"
+                  (click)="onSetPrimary(current)"
+                  [disabled]="isUploading()"
+                >
+                  Postavi kao glavnu
+                </button>
+              }
+              <button
+                type="button"
+                class="cs-btn-danger"
+                (click)="onDeleteImage(current)"
+                [disabled]="isUploading()"
+              >
+                Obriši sliku
+              </button>
             </div>
           }
 
@@ -87,6 +149,14 @@ import { VehicleDetail, VehicleImage } from '../models/vehicle.model';
             </div>
           }
         </section>
+
+        @if (lightboxOpen()) {
+          <app-image-lightbox
+            [images]="lightboxImages()"
+            [initialIndex]="carouselIndex()"
+            (close)="closeLightbox()"
+          />
+        }
       } @else {
         <p class="cs-muted">Vozilo nije pronađeno</p>
       }
@@ -169,65 +239,152 @@ import { VehicleDetail, VehicleImage } from '../models/vehicle.model';
         color: var(--cs-text-primary);
         margin: 0;
       }
-      .cs-img-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
-      }
-      .cs-img-tile {
+      .cs-carousel {
         position: relative;
-        aspect-ratio: 1 / 1;
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
-        border: 1px solid var(--cs-border-subtle);
         background: var(--cs-bg-3);
       }
-      .cs-img-tile.primary {
-        box-shadow: 0 0 0 2px var(--cs-accent);
+      .cs-carousel-hero {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: none;
+        background: var(--cs-bg-3);
+        cursor: zoom-in;
+        position: relative;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
       }
-      .cs-img-tile img {
+      .cs-carousel-hero img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        display: block;
+        transition: transform 0.18s ease;
       }
-      .cs-img-actions {
+      .cs-carousel-hero:hover img {
+        transform: scale(1.02);
+      }
+      .cs-carousel-count {
         position: absolute;
-        inset: 0;
+        bottom: 12px;
+        right: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(6px);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .cs-carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        background: rgba(0, 0, 0, 0.55);
-        opacity: 0;
-        transition: opacity 0.12s ease;
+        cursor: pointer;
+        transition: background 0.12s ease;
       }
-      .cs-img-tile:hover .cs-img-actions {
-        opacity: 1;
+      .cs-carousel-nav:hover {
+        background: rgba(0, 0, 0, 0.75);
       }
-      .cs-img-actions button {
-        padding: 4px 10px;
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #0a0b0d;
-        border: none;
-        font-size: 11px;
+      .cs-carousel-nav.left {
+        left: 12px;
+      }
+      .cs-carousel-nav.right {
+        right: 12px;
+      }
+      .cs-thumbs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 4px 0 2px;
+      }
+      .cs-thumb {
+        position: relative;
+        flex: 0 0 auto;
+        width: 80px;
+        height: 56px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        padding: 0;
+        background: var(--cs-bg-3);
+        cursor: pointer;
+        transition: border-color 0.12s ease, transform 0.12s ease;
+      }
+      .cs-thumb:hover {
+        transform: translateY(-1px);
+      }
+      .cs-thumb.active {
+        border-color: var(--cs-accent);
+      }
+      .cs-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .cs-thumb-primary {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--cs-accent);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+      }
+      .cs-carousel-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .cs-btn-ghost {
+        padding: 8px 14px;
+        border-radius: 9px;
+        background: var(--cs-bg-2);
+        border: 1px solid var(--cs-border);
+        color: var(--cs-text-primary);
+        font-family: var(--font-text);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .cs-btn-ghost:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .cs-btn-danger {
+        padding: 8px 14px;
+        border-radius: 9px;
+        background: transparent;
+        border: 1px solid var(--cs-status-danger);
+        color: var(--cs-status-danger);
+        font-family: var(--font-text);
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
       }
-      .cs-img-actions button.danger {
-        background: var(--cs-status-danger);
-        color: #fff;
-      }
-      .cs-img-actions button:disabled {
+      .cs-btn-danger:disabled {
         opacity: 0.5;
         cursor: not-allowed;
       }
       .cs-primary-tag {
         position: absolute;
-        top: 6px;
-        left: 6px;
-        padding: 2px 8px;
+        top: 12px;
+        left: 12px;
+        padding: 3px 10px;
         border-radius: 6px;
         background: var(--cs-accent);
         color: var(--cs-accent-ink);
@@ -274,11 +431,31 @@ export class VehicleDetailPageComponent implements OnInit {
   readonly isLoading = signal(true);
   readonly isUploading = signal(false);
   readonly isDragOver = signal(false);
+  readonly lightboxOpen = signal(false);
 
   readonly canAddMore = computed(() => {
     const detail = this.vehicleDetail();
     return detail !== null && detail.images.length < 10;
   });
+
+  readonly carouselIndex = linkedSignal<number, number>({
+    source: () => this.vehicleDetail()?.images.length ?? 0,
+    computation: (len, previous) => {
+      if (len === 0) return 0;
+      const prev = previous?.value ?? 0;
+      return Math.max(0, Math.min(len - 1, prev));
+    },
+  });
+
+  readonly currentImage = computed<VehicleImage | null>(() => {
+    const detail = this.vehicleDetail();
+    if (!detail || detail.images.length === 0) return null;
+    return detail.images[this.carouselIndex()] ?? detail.images[0] ?? null;
+  });
+
+  readonly lightboxImages = computed<LightboxImage[]>(() =>
+    this.vehicleDetail()?.images.map((i) => ({ url: i.imageUrl })) ?? [],
+  );
 
   ngOnInit(): void {
     this.loadDetail();
@@ -299,6 +476,27 @@ export class VehicleDetailPageComponent implements OnInit {
     this.vehicleService.deleteImage(this.id(), image.id).subscribe({
       next: () => this.loadDetail(),
     });
+  }
+
+  prevImage(): void {
+    const len = this.vehicleDetail()?.images.length ?? 0;
+    if (len <= 1) return;
+    this.carouselIndex.update((i) => (i - 1 + len) % len);
+  }
+
+  nextImage(): void {
+    const len = this.vehicleDetail()?.images.length ?? 0;
+    if (len <= 1) return;
+    this.carouselIndex.update((i) => (i + 1) % len);
+  }
+
+  openLightbox(index: number): void {
+    this.carouselIndex.set(index);
+    this.lightboxOpen.set(true);
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen.set(false);
   }
 
   onDragOver(event: DragEvent): void {

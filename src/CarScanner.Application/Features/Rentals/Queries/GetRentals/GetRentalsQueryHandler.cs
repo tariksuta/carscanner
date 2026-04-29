@@ -30,6 +30,7 @@ public sealed class GetRentalsQueryHandler(IRentalRepository rentalRepository)
                 r.ActualReturnDate,
                 r.PickupMileage,
                 r.ReturnMileage,
+                r.Price,
                 r.Status,
                 r.Notes))
             .ToList();

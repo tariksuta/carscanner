@@ -25,6 +25,12 @@ public sealed class GetEmployeeByIdQueryHandler(IEmployeeRepository employeeRepo
             employee.Phone,
             employee.IsActive,
             employee.CreatedOnUtc,
-            employee.ModifiedOnUtc);
+            employee.ModifiedOnUtc,
+            employee.HasLoginAccess,
+            employee.ApplicationUser?.Role,
+            employee.ApplicationUser?.LastSignInOnUtc,
+            employee.BranchId,
+            employee.Branch?.Name,
+            employee.Branch?.City);
     }
 }

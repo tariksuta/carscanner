@@ -38,6 +38,7 @@ public sealed class CreateRentalCommandHandler(
             request.VehicleId,
             request.ClientId,
             request.ExpectedReturnDate,
+            request.Price,
             request.Notes);
 
         if (rentalResult.IsFailure)

@@ -53,3 +53,45 @@ export interface UpdateClientRequest {
 export interface CreateClientResponse {
   clientId: string;
 }
+
+export enum ClientActivityType {
+  RentalCreated = 0,
+  RentalStarted = 1,
+  RentalCompleted = 2,
+  DamageDetected = 3,
+}
+
+export interface ClientStats {
+  totalRentals: number;
+  averageDurationDays: number;
+  damageCount: number;
+  totalSpent: number;
+  lastRentalDate: string | null;
+}
+
+export interface ClientRentalRow {
+  id: string;
+  vehicleLabel: string;
+  licensePlate: string;
+  pickupDate: string | null;
+  actualReturnDate: string | null;
+  expectedReturnDate: string;
+  status: number;
+  price: number;
+  hasDamage: boolean;
+}
+
+export interface ClientActivityItem {
+  timestamp: string;
+  type: ClientActivityType;
+  title: string;
+  subtitle: string;
+  relatedRentalId: string | null;
+}
+
+export interface ClientDetails {
+  client: Client;
+  stats: ClientStats;
+  recentRentals: ClientRentalRow[];
+  activity: ClientActivityItem[];
+}

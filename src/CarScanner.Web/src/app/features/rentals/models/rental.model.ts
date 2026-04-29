@@ -11,8 +11,8 @@ export interface Rental extends BaseEntity {
   vehicleId: string; clientId: string; pickupEmployeeId?: string; returnEmployeeId?: string;
   pickupInspectionId?: string; returnInspectionId?: string; pickupDate?: string;
   expectedReturnDate: string; actualReturnDate?: string; pickupMileage?: number;
-  returnMileage?: number; status: RentalStatus; notes?: string;
+  returnMileage?: number; price: number; status: RentalStatus; notes?: string;
 }
 
-export interface CreateRentalRequest { vehicleId: string; clientId: string; expectedReturnDate: string; notes?: string; }
+export interface CreateRentalRequest { vehicleId: string; clientId: string; expectedReturnDate: string; price: number; notes?: string; }
 export interface CreateRentalResponse { rentalId: string; }

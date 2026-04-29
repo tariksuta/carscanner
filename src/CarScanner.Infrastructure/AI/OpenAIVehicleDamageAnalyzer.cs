@@ -30,7 +30,7 @@ public sealed class OpenAIVehicleDamageAnalyzer : IVehicleDamageAnalyzer
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
     }
 
-    public async Task<DamageAnalysisResult> AnalyzeDamageAsync(
+    public async Task<DamageAnalysisOutcome> AnalyzeDamageAsync(
         DamageAnalysisRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -54,18 +54,20 @@ public sealed class OpenAIVehicleDamageAnalyzer : IVehicleDamageAnalyzer
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 _logger.LogError("OpenAI API error: {StatusCode} - {Error}", response.StatusCode, errorContent);
-                return DamageAnalysisResult.Failed($"AI service error: {response.StatusCode}");
+                return new DamageAnalysisOutcome(
+                    DamageAnalysisResult.Failed($"AI service error: {response.StatusCode}"),
+                    null);
             }
 
             var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-            var result = ParseResponse(responseJson);
-
-            return result;
+            return ParseResponse(responseJson);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during damage analysis for rental {RentalId}", request.RentalId);
-            return DamageAnalysisResult.Failed($"Analysis failed: {ex.Message}");
+            return new DamageAnalysisOutcome(
+                DamageAnalysisResult.Failed($"Analysis failed: {ex.Message}"),
+                null);
         }
     }
 
@@ -150,12 +152,21 @@ Respond in JSON format:
 Be thorough but only report NEW damage that wasn't present in the BEFORE photos.";
     }
 
-    private DamageAnalysisResult ParseResponse(string responseJson)
+    private DamageAnalysisOutcome ParseResponse(string responseJson)
     {
         try
         {
             using var doc = JsonDocument.Parse(responseJson);
             var root = doc.RootElement;
+
+            TokenUsage? usage = null;
+            if (root.TryGetProperty("usage", out var usageProp))
+            {
+                usage = new TokenUsage(
+                    usageProp.GetProperty("prompt_tokens").GetInt32(),
+                    usageProp.GetProperty("completion_tokens").GetInt32(),
+                    _model);
+            }
 
             var content = root
                 .GetProperty("choices")[0]
@@ -164,7 +175,7 @@ Be thorough but only report NEW damage that wasn't present in the BEFORE photos.
                 .GetString();
 
             if (string.IsNullOrEmpty(content))
-                return DamageAnalysisResult.Failed("Empty response from AI");
+                return new DamageAnalysisOutcome(DamageAnalysisResult.Failed("Empty response from AI"), usage);
 
             using var contentDoc = JsonDocument.Parse(content);
             var contentRoot = contentDoc.RootElement;
@@ -172,7 +183,7 @@ Be thorough but only report NEW damage that wasn't present in the BEFORE photos.
             var hasDamages = contentRoot.GetProperty("hasDamages").GetBoolean();
 
             if (!hasDamages)
-                return DamageAnalysisResult.NoDamageFound(content);
+                return new DamageAnalysisOutcome(DamageAnalysisResult.NoDamageFound(content), usage);
 
             var damages = new List<DetectedDamage>();
 
@@ -196,12 +207,14 @@ Be thorough but only report NEW damage that wasn't present in the BEFORE photos.
                 }
             }
 
-            return DamageAnalysisResult.DamagesFound(damages, content);
+            return new DamageAnalysisOutcome(DamageAnalysisResult.DamagesFound(damages, content), usage);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error parsing OpenAI response");
-            return DamageAnalysisResult.Failed($"Failed to parse AI response: {ex.Message}");
+            return new DamageAnalysisOutcome(
+                DamageAnalysisResult.Failed($"Failed to parse AI response: {ex.Message}"),
+                null);
         }
     }
 }

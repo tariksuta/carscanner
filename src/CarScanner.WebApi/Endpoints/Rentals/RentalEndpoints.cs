@@ -58,6 +58,7 @@ public static class RentalEndpoints
             request.VehicleId,
             request.ClientId,
             request.ExpectedReturnDate,
+            request.Price,
             request.Notes);
 
         var result = await sender.Send(command, cancellationToken);
@@ -92,6 +93,7 @@ public sealed record CreateRentalRequest(
     Guid VehicleId,
     Guid ClientId,
     DateTime ExpectedReturnDate,
+    decimal Price,
     string? Notes);
 
 public sealed record ChangeRentalStatusRequest(
