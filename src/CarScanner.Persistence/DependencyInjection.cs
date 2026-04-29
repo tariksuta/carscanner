@@ -1,10 +1,12 @@
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Repository;
+using CarScanner.Domain.Aggregates.BillingAggregate.Repository;
 using CarScanner.Domain.Aggregates.BranchAggregate.Repository;
 using CarScanner.Domain.Aggregates.ClientAggregate.Repository;
 using CarScanner.Domain.Aggregates.DamageReportAggregate.Repository;
 using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Repository;
 using CarScanner.Domain.Aggregates.RentalAggregate.Repository;
+using CarScanner.Domain.Aggregates.TenantAggregate.Repository;
 using CarScanner.Domain.Aggregates.VehicleAggregate.Repository;
 using CarScanner.Persistence.Repositories;
 using CarScanner.SharedKernel.Interfaces;
@@ -42,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<IRentalRepository, RentalRepository>();
         services.AddScoped<IVehicleInspectionRepository, VehicleInspectionRepository>();
         services.AddScoped<IDamageReportRepository, DamageReportRepository>();
+        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IBillingAccountRepository, BillingAccountRepository>();
 
         return services;
     }
