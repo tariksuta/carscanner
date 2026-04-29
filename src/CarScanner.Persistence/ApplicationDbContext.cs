@@ -51,6 +51,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<BillingAccount> BillingAccounts => Set<BillingAccount>();
     public DbSet<Reservation> BillingReservations => Set<Reservation>();
+    public DbSet<PricingPlan> PricingPlans => Set<PricingPlan>();
+    public DbSet<AiUsageRecord> AiUsageRecords => Set<AiUsageRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
