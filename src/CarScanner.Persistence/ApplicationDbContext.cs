@@ -11,6 +11,7 @@ using CarScanner.Domain.Aggregates.EmployeeAggregate;
 using CarScanner.Domain.Aggregates.InspectionAggregate;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Entities;
 using CarScanner.Domain.Aggregates.RentalAggregate;
+using CarScanner.Domain.Aggregates.ServiceBookAggregate;
 using CarScanner.Domain.Aggregates.TenantAggregate;
 using CarScanner.Domain.Aggregates.VehicleAggregate;
 using CarScanner.Domain.Aggregates.VehicleAggregate.Entities;
@@ -53,6 +54,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Reservation> BillingReservations => Set<Reservation>();
     public DbSet<PricingPlan> PricingPlans => Set<PricingPlan>();
     public DbSet<AiUsageRecord> AiUsageRecords => Set<AiUsageRecord>();
+    public DbSet<ServiceRecord> ServiceRecords => Set<ServiceRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +69,7 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<Rental>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<VehicleInspection>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
             modelBuilder.Entity<DamageReport>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
+            modelBuilder.Entity<ServiceRecord>().HasQueryFilter(e => e.TenantId == _tenantProvider.TenantId && !e.IsDeleted);
         }
 
         base.OnModelCreating(modelBuilder);

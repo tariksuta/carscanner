@@ -7,6 +7,7 @@ using CarScanner.Domain.Aggregates.DamageReportAggregate.Repository;
 using CarScanner.Domain.Aggregates.EmployeeAggregate.Repository;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Repository;
 using CarScanner.Domain.Aggregates.RentalAggregate.Repository;
+using CarScanner.Domain.Aggregates.ServiceBookAggregate.Repository;
 using CarScanner.Domain.Aggregates.TenantAggregate.Repository;
 using CarScanner.Domain.Aggregates.VehicleAggregate.Repository;
 using CarScanner.Persistence.Repositories;
@@ -49,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IBillingAccountRepository, BillingAccountRepository>();
         services.AddScoped<IPricingPlanRepository, PricingPlanRepository>();
         services.AddScoped<IAiUsageRecordRepository, AiUsageRecordRepository>();
+        services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
 
         services.AddSingleton<IPricingCalculator, PricingCalculator>();
 
