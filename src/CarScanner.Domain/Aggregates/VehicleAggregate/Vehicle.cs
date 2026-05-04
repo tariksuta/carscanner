@@ -1,5 +1,6 @@
 using CarScanner.Domain.Aggregates.VehicleAggregate.Entities;
 using CarScanner.Domain.Aggregates.VehicleAggregate.Errors;
+using CarScanner.Domain.Aggregates.VehicleAggregate.Events;
 using CarScanner.Domain.Aggregates.VehicleAggregate.ValueObjects;
 using CarScanner.Domain.Enums;
 using CarScanner.SharedKernel.Interfaces;
@@ -60,6 +61,8 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         Seats = seats;
         RegistrationExpiry = registrationExpiry;
         InsuranceExpiry = insuranceExpiry;
+
+        RaiseDomainEvent(new VehicleCreatedDomainEvent(Id, registrationExpiry, insuranceExpiry));
     }
 
     public static Result<Vehicle> Create(
@@ -242,6 +245,9 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         if (seats < 1 || seats > 9)
             return Result.Failure(VehicleDomainErrors.InvalidSeats);
 
+        var oldRegistrationExpiry = RegistrationExpiry;
+        var oldInsuranceExpiry = InsuranceExpiry;
+
         Brand = brand.Trim();
         Model = model.Trim();
         Year = year;
@@ -253,6 +259,12 @@ public sealed class Vehicle : AggregateRoot, ITenantEntity
         Seats = seats;
         RegistrationExpiry = registrationExpiry;
         InsuranceExpiry = insuranceExpiry;
+
+        if (oldRegistrationExpiry != registrationExpiry)
+            RaiseDomainEvent(new VehicleRegistrationExpiryUpdatedDomainEvent(Id, oldRegistrationExpiry, registrationExpiry));
+
+        if (oldInsuranceExpiry != insuranceExpiry)
+            RaiseDomainEvent(new VehicleInsuranceExpiryUpdatedDomainEvent(Id, oldInsuranceExpiry, insuranceExpiry));
 
         return Result.Success();
     }
