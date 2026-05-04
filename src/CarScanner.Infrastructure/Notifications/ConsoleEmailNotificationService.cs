@@ -162,4 +162,109 @@ public sealed class ConsoleEmailNotificationService(ILogger<ConsoleEmailNotifica
 
         return Task.CompletedTask;
     }
+
+    public Task SendLowBalanceAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal balance,
+        decimal threshold,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogWarning(
+            """
+            ========== LOW BALANCE ALERT EMAIL ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Upozorenje: nizak balans
+
+            Poštovani {RecipientName},
+
+            Vaš AI kredit je pao ispod podešenog praga.
+
+            Trenutni balans: {Balance} {Currency}
+            Prag upozorenja: {Threshold} {Currency}
+
+            Preporučujemo da dopunite kredit kako biste izbjegli prekid AI analiza.
+
+            Srdačan pozdrav,
+            CarScanner Team
+            =============================================
+            """,
+            recipientEmail,
+            recipientName,
+            recipientName,
+            balance,
+            currency,
+            threshold,
+            currency);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendBalanceExhaustedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogWarning(
+            """
+            ========== BALANCE EXHAUSTED EMAIL ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: AI servis pauziran — balans je iscrpljen
+
+            Poštovani {RecipientName},
+
+            Vaš AI kredit je iscrpljen ({Currency}). AI analiza je trenutno pauzirana
+            za vaš nalog. Dopunite balans kako biste nastavili.
+
+            Srdačan pozdrav,
+            CarScanner Team
+            =============================================
+            """,
+            recipientEmail,
+            recipientName,
+            recipientName,
+            currency);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendMonthlyCapReachedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal monthSpent,
+        decimal cap,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogWarning(
+            """
+            ========== MONTHLY CAP REACHED EMAIL ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Mjesečni limit dostignut
+
+            Poštovani {RecipientName},
+
+            Dostigli ste podešeni mjesečni limit potrošnje.
+
+            Mjesečna potrošnja: {MonthSpent} {Currency}
+            Mjesečni limit:     {Cap} {Currency}
+
+            AI analize će biti blokirane do kraja mjeseca ili dok admin ne podigne limit.
+
+            Srdačan pozdrav,
+            CarScanner Team
+            ===============================================
+            """,
+            recipientEmail,
+            recipientName,
+            recipientName,
+            monthSpent,
+            currency,
+            cap,
+            currency);
+
+        return Task.CompletedTask;
+    }
 }

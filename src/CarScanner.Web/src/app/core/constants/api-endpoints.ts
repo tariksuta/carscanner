@@ -50,4 +50,8 @@ export const API_ENDPOINTS = {
     PASSWORD: '/profile/password',
     IMAGE: '/profile/image',
   },
+  BILLING: {
+    ACCOUNT: '/billing/account',
+    USAGE: '/billing/usage',
+  },
 } as const;

@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using CarScanner.Application.Abstraction.AI;
+using CarScanner.Application.Abstraction.Billing;
 using CarScanner.Application.Abstraction.Notifications;
 using CarScanner.Application.Abstraction.Storage;
 using CarScanner.Application.Abstraction.Tenant;
@@ -7,12 +8,15 @@ using CarScanner.Application.Abstraction.TokenGenerator.AccessTokenGenerator;
 using CarScanner.Application.Abstraction.TokenGenerator.RefreshTokenGenerator;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 using CarScanner.Infrastructure.AI;
+using CarScanner.Infrastructure.Billing;
+using CarScanner.Infrastructure.Billing.BackgroundJobs;
 using CarScanner.Infrastructure.IdentityServices;
 using CarScanner.Infrastructure.Notifications;
 using CarScanner.Infrastructure.Storage;
 using CarScanner.Infrastructure.Tenant;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CarScanner.Infrastructure;
 
@@ -22,7 +26,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddScoped<ITenantProvider, HttpHeaderTenantProvider>();
+        services.AddScoped<ITenantProvider, JwtClaimTenantProvider>();
 
         services.AddSingleton(_ =>
             new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage")));
@@ -33,15 +37,30 @@ public static class DependencyInjection
 
 		services.AddTokenGenerators(configuration);
 
+        services.AddScoped<MockVehicleDamageAnalyzer>();
+
         var useRealAI = configuration.GetSection("OpenAI:Enabled").Value == "true";
         if (useRealAI)
         {
-            services.AddHttpClient<IVehicleDamageAnalyzer, OpenAIVehicleDamageAnalyzer>();
+            services.AddHttpClient<OpenAIVehicleDamageAnalyzer>();
         }
-        else
+
+        services.AddScoped<IVehicleDamageAnalyzer>(sp =>
         {
-            services.AddScoped<IVehicleDamageAnalyzer, MockVehicleDamageAnalyzer>();
-        }
+            IVehicleDamageAnalyzer inner = useRealAI
+                ? sp.GetRequiredService<OpenAIVehicleDamageAnalyzer>()
+                : sp.GetRequiredService<MockVehicleDamageAnalyzer>();
+
+            return new BillingAwareVehicleDamageAnalyzer(
+                inner,
+                sp.GetRequiredService<IBillingService>(),
+                sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<ILogger<BillingAwareVehicleDamageAnalyzer>>());
+        });
+
+        services.AddScoped<IBillingService, BillingService>();
+
+        services.AddHostedService<BillingMaintenanceHostedService>();
 
         return services;
     }

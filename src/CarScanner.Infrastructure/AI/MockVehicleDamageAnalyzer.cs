@@ -20,11 +20,16 @@ public sealed class MockVehicleDamageAnalyzer(ILogger<MockVehicleDamageAnalyzer>
         var random = new Random();
         var hasDamage = random.Next(100) < 30;
 
+        // Mock returns zero-token usage tied to the configured model so the billing
+        // decorator goes through the Committed path with charged=0 (instead of falling
+        // back to charging the full estimate against an unknown "mock" model).
+        var usage = new TokenUsage(0, 0, "gpt-4o");
+
         if (!hasDamage)
         {
             return Task.FromResult(new DamageAnalysisOutcome(
                 DamageAnalysisResult.NoDamageFound("{\"hasDamages\": false, \"damages\": []}"),
-                null));
+                usage));
         }
 
         var damages = new List<DetectedDamage>();
@@ -56,6 +61,6 @@ public sealed class MockVehicleDamageAnalyzer(ILogger<MockVehicleDamageAnalyzer>
             DamageAnalysisResult.DamagesFound(
                 damages,
                 $"{{\"hasDamages\": true, \"damages\": [{damages.Count} items]}}"),
-            null));
+            usage));
     }
 }

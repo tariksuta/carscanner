@@ -34,6 +34,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Postavke',
     items: [
       { label: 'Poslovnice', icon: 'building-2', route: '/branches' },
+      { label: 'Naplata', icon: 'wallet', route: '/billing' },
       { label: 'Profil', icon: 'user', route: '/profile' },
     ],
   },

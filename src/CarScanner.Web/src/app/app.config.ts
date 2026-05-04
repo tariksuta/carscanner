@@ -49,7 +49,6 @@ import {
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
-import { tenantInterceptor } from './core/auth/interceptors/tenant.interceptor';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/auth/interceptors/error.interceptor';
 
@@ -60,7 +59,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withFetch(),
-      withInterceptors([tenantInterceptor, authInterceptor, errorInterceptor]),
+      withInterceptors([authInterceptor, errorInterceptor]),
     ),
     {
       provide: LUCIDE_ICONS,

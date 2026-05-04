@@ -45,7 +45,8 @@ public sealed class GrantEmployeeLoginAccessCommandHandler(
             passwordHash,
             employee.FirstName,
             employee.LastName,
-            request.Role);
+            request.Role,
+            tenantId: employee.TenantId);
 
         if (userResult.IsFailure)
             return Result.Failure<GrantEmployeeLoginAccessCommandResult>(userResult.Error);

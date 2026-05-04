@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { UserMenuComponent } from '../user-menu/user-menu.component';
+import { BalanceIndicatorComponent } from '../balance-indicator/balance-indicator.component';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [BreadcrumbComponent, UserMenuComponent, LucideAngularModule],
+  imports: [BreadcrumbComponent, UserMenuComponent, LucideAngularModule, BalanceIndicatorComponent],
   template: `
     <header class="cs-topbar">
       <div class="cs-topbar-left">
@@ -18,6 +19,7 @@ import { UserMenuComponent } from '../user-menu/user-menu.component';
           <span>Pretraži…</span>
           <span class="cs-kbd">⌘K</span>
         </button>
+        <app-balance-indicator />
         <button type="button" class="cs-icon-btn" aria-label="Obavijesti">
           <lucide-icon name="bell" [size]="16" />
           <span class="cs-bell-dot"></span>

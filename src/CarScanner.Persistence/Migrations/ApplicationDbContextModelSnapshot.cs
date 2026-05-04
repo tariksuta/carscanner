@@ -94,10 +94,15 @@ namespace CarScanner.Persistence.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("ApplicationUsers", (string)null);
                 });

@@ -12,6 +12,9 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
 
         builder.HasKey(u => u.Id);
 
+        builder.Property(u => u.TenantId);
+        builder.HasIndex(u => u.TenantId);
+
         builder.Property(u => u.Email)
             .HasMaxLength(255)
             .IsRequired();

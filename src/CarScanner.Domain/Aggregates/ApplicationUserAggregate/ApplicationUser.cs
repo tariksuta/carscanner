@@ -8,6 +8,7 @@ namespace CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 
 public sealed partial class ApplicationUser : AggregateRoot
 {
+    public Guid? TenantId { get; private set; }
     public string Email { get; private set; } = null!;
     public string NormalizedEmail { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
@@ -29,7 +30,8 @@ public sealed partial class ApplicationUser : AggregateRoot
         string passwordHash,
         string? firstName,
         string? lastName,
-        string? role) : base()
+        string? role,
+        Guid? tenantId) : base()
     {
         Email = email.ToLowerInvariant();
         NormalizedEmail = email.ToUpperInvariant();
@@ -37,6 +39,7 @@ public sealed partial class ApplicationUser : AggregateRoot
         FirstName = firstName?.Trim();
         LastName = lastName?.Trim();
         Role = role?.Trim();
+        TenantId = tenantId;
         IsActive = true;
     }
 
@@ -45,7 +48,8 @@ public sealed partial class ApplicationUser : AggregateRoot
         string passwordHash,
         string? firstName = null,
         string? lastName = null,
-        string? role = null)
+        string? role = null,
+        Guid? tenantId = null)
     {
         if (string.IsNullOrWhiteSpace(email) || !EmailRegex().IsMatch(email))
             return Result.Failure<ApplicationUser>(ApplicationUserDomainErrors.InvalidEmail);
@@ -53,7 +57,12 @@ public sealed partial class ApplicationUser : AggregateRoot
         if (string.IsNullOrWhiteSpace(passwordHash))
             return Result.Failure<ApplicationUser>(ApplicationUserDomainErrors.InvalidPassword);
 
-        return new ApplicationUser(email.Trim(), passwordHash, firstName, lastName, role);
+        return new ApplicationUser(email.Trim(), passwordHash, firstName, lastName, role, tenantId);
+    }
+
+    public void AssignToTenant(Guid tenantId)
+    {
+        TenantId = tenantId;
     }
 
     public Result Login(string refreshToken, DateTime expiresOnUtc)
