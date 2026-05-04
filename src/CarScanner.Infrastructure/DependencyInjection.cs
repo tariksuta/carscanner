@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using CarScanner.Application.Abstraction.AI;
+using CarScanner.Application.Abstraction.Authorization;
 using CarScanner.Application.Abstraction.Billing;
 using CarScanner.Application.Abstraction.Notifications;
 using CarScanner.Application.Abstraction.Storage;
@@ -8,6 +9,7 @@ using CarScanner.Application.Abstraction.TokenGenerator.AccessTokenGenerator;
 using CarScanner.Application.Abstraction.TokenGenerator.RefreshTokenGenerator;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 using CarScanner.Infrastructure.AI;
+using CarScanner.Infrastructure.Authorization;
 using CarScanner.Infrastructure.Billing;
 using CarScanner.Infrastructure.Billing.BackgroundJobs;
 using CarScanner.Infrastructure.IdentityServices;
@@ -61,6 +63,9 @@ public static class DependencyInjection
         services.AddScoped<IBillingService, BillingService>();
 
         services.AddHostedService<BillingMaintenanceHostedService>();
+
+        services.AddMemoryCache();
+        services.AddScoped<IFeatureService, PricingPlanFeatureService>();
 
         return services;
     }

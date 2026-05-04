@@ -1,5 +1,6 @@
 using CarScanner.Domain.Aggregates.BillingAggregate.Errors;
 using CarScanner.Domain.Aggregates.BillingAggregate.ValueObjects;
+using CarScanner.SharedKernel.Authorization;
 using CarScanner.SharedKernel.Primitives;
 
 namespace CarScanner.Domain.Aggregates.BillingAggregate;
@@ -10,6 +11,7 @@ public sealed class PricingPlan : AggregateRoot
     public const decimal MinMarkup = 1.0m;
 
     private readonly List<ModelPricing> _modelPricings = [];
+    private readonly HashSet<Module> _enabledModules = new();
 
     public string Name { get; private set; } = null!;
     public bool IsDefault { get; private set; }
@@ -18,6 +20,7 @@ public sealed class PricingPlan : AggregateRoot
     public DateTime? EffectiveUntilUtc { get; private set; }
 
     public IReadOnlyCollection<ModelPricing> ModelPricings => _modelPricings.AsReadOnly();
+    public IReadOnlyCollection<Module> EnabledModules => _enabledModules;
 
     private PricingPlan() { }
 
@@ -27,6 +30,9 @@ public sealed class PricingPlan : AggregateRoot
         IsDefault = isDefault;
         MarkupMultiplier = markup;
         EffectiveFromUtc = effectiveFromUtc;
+
+        foreach (var module in DefaultEnabledModules())
+            _enabledModules.Add(module);
     }
 
     public static Result<PricingPlan> Create(string name, decimal markupMultiplier, bool isDefault = false)
@@ -41,6 +47,25 @@ public sealed class PricingPlan : AggregateRoot
             return Result.Failure<PricingPlan>(BillingDomainErrors.InvalidMarkup);
 
         return new PricingPlan(name.Trim(), isDefault, markupMultiplier, DateTime.UtcNow);
+    }
+
+    public bool IsModuleEnabled(Module module) => _enabledModules.Contains(module);
+
+    public void EnableModule(Module module) => _enabledModules.Add(module);
+
+    public void DisableModule(Module module) => _enabledModules.Remove(module);
+
+    public void SetEnabledModules(IEnumerable<Module> modules)
+    {
+        _enabledModules.Clear();
+        foreach (var module in modules)
+            _enabledModules.Add(module);
+    }
+
+    private static IEnumerable<Module> DefaultEnabledModules()
+    {
+        // Novi planovi po defaultu imaju sve module osim PlatformTenants (samo za platform admin tenant).
+        return Enum.GetValues<Module>().Where(m => m != Module.PlatformTenants);
     }
 
     public Result UpsertModelPricing(
