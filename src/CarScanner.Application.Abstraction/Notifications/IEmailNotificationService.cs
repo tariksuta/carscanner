@@ -33,4 +33,26 @@ public interface IEmailNotificationService
         string recipientName,
         string temporaryPassword,
         CancellationToken cancellationToken = default);
+
+    Task SendLowBalanceAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal balance,
+        decimal threshold,
+        string currency,
+        CancellationToken cancellationToken = default);
+
+    Task SendBalanceExhaustedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        string currency,
+        CancellationToken cancellationToken = default);
+
+    Task SendMonthlyCapReachedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal monthSpent,
+        decimal cap,
+        string currency,
+        CancellationToken cancellationToken = default);
 }

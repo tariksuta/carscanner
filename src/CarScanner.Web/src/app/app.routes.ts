@@ -72,6 +72,12 @@ export const routes: Routes = [
           import('./features/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
         data: { breadcrumb: 'Profile Settings' },
       },
+      {
+        path: 'billing',
+        loadChildren: () =>
+          import('./features/billing/billing.routes').then((m) => m.BILLING_ROUTES),
+        data: { breadcrumb: 'Naplata' },
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

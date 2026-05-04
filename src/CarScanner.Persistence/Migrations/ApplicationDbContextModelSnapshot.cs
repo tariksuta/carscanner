@@ -94,10 +94,15 @@ namespace CarScanner.Persistence.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("ApplicationUsers", (string)null);
                 });
@@ -145,6 +150,285 @@ namespace CarScanner.Persistence.Migrations
                     b.HasIndex("ApplicationUserId", "TokenType");
 
                     b.ToTable("ApplicationUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.AiUsageRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BillingAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ChargedAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<int>("CompletionTokens")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DamageReportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ErrorContext")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Feature")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("OriginalUsageRecordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PromptTokens")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RawCostUsd")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid?>("ReservationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TotalTokens")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillingAccountId");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("DamageReportId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "CreatedAtUtc");
+
+                    b.ToTable("AiUsageRecords", (string)null);
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.BillingAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Balance")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<Guid?>("CurrentPricingPlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LifetimeSpent")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("LifetimeToppedUp")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<bool>("LowBalanceAlertSentForCurrentDip")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("LowBalanceThreshold")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("MonthAnchorUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("MonthSpent")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal?>("MonthlyHardCap")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique();
+
+                    b.ToTable("BillingAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.Entities.Reservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ActualCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid>("BillingAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillingAccountId");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("BillingReservations", (string)null);
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.PricingPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EffectiveFromUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MarkupMultiplier")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDefault");
+
+                    b.HasIndex("IsDefault", "EffectiveUntilUtc");
+
+                    b.ToTable("PricingPlans", (string)null);
                 });
 
             modelBuilder.Entity("CarScanner.Domain.Aggregates.BranchAggregate.Branch", b =>
@@ -688,6 +972,67 @@ namespace CarScanner.Persistence.Migrations
                     b.ToTable("Rentals", (string)null);
                 });
 
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.TenantAggregate.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContactEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("ProvisionedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SuspensionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactEmail");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Tenants", (string)null);
+                });
+
             modelBuilder.Entity("CarScanner.Domain.Aggregates.VehicleAggregate.Entities.VehicleImage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -873,6 +1218,57 @@ namespace CarScanner.Persistence.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.Entities.Reservation", b =>
+                {
+                    b.HasOne("CarScanner.Domain.Aggregates.BillingAggregate.BillingAccount", null)
+                        .WithMany("Reservations")
+                        .HasForeignKey("BillingAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.PricingPlan", b =>
+                {
+                    b.OwnsMany("CarScanner.Domain.Aggregates.BillingAggregate.ValueObjects.ModelPricing", "ModelPricings", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("CompletionCostPerThousandTokens")
+                                .HasPrecision(18, 8)
+                                .HasColumnType("decimal(18,8)");
+
+                            b1.Property<decimal?>("FixedSurchargePerCall")
+                                .HasPrecision(18, 8)
+                                .HasColumnType("decimal(18,8)");
+
+                            b1.Property<string>("Model")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<Guid>("PricingPlanId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("PromptCostPerThousandTokens")
+                                .HasPrecision(18, 8)
+                                .HasColumnType("decimal(18,8)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("PricingPlanId", "Model")
+                                .IsUnique();
+
+                            b1.ToTable("PricingPlanModelPricings", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("PricingPlanId");
+                        });
+
+                    b.Navigation("ModelPricings");
+                });
+
             modelBuilder.Entity("CarScanner.Domain.Aggregates.ClientAggregate.Client", b =>
                 {
                     b.OwnsOne("CarScanner.Domain.Aggregates.ClientAggregate.ValueObjects.DriverLicense", "DriverLicense", b1 =>
@@ -982,6 +1378,11 @@ namespace CarScanner.Persistence.Migrations
             modelBuilder.Entity("CarScanner.Domain.Aggregates.ApplicationUserAggregate.ApplicationUser", b =>
                 {
                     b.Navigation("Tokens");
+                });
+
+            modelBuilder.Entity("CarScanner.Domain.Aggregates.BillingAggregate.BillingAccount", b =>
+                {
+                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("CarScanner.Domain.Aggregates.DamageReportAggregate.DamageReport", b =>

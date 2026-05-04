@@ -1,6 +1,8 @@
 using CarScanner.Application.Abstraction.Tenant;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate.Entities;
+using CarScanner.Domain.Aggregates.BillingAggregate;
+using CarScanner.Domain.Aggregates.BillingAggregate.Entities;
 using CarScanner.Domain.Aggregates.BranchAggregate;
 using CarScanner.Domain.Aggregates.ClientAggregate;
 using CarScanner.Domain.Aggregates.DamageReportAggregate;
@@ -9,6 +11,7 @@ using CarScanner.Domain.Aggregates.EmployeeAggregate;
 using CarScanner.Domain.Aggregates.InspectionAggregate;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Entities;
 using CarScanner.Domain.Aggregates.RentalAggregate;
+using CarScanner.Domain.Aggregates.TenantAggregate;
 using CarScanner.Domain.Aggregates.VehicleAggregate;
 using CarScanner.Domain.Aggregates.VehicleAggregate.Entities;
 using CarScanner.SharedKernel.Interfaces;
@@ -45,6 +48,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<VehicleImage> VehicleImages => Set<VehicleImage>();
     public DbSet<DamageReport> DamageReports => Set<DamageReport>();
     public DbSet<DamageItem> DamageItems => Set<DamageItem>();
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<BillingAccount> BillingAccounts => Set<BillingAccount>();
+    public DbSet<Reservation> BillingReservations => Set<Reservation>();
+    public DbSet<PricingPlan> PricingPlans => Set<PricingPlan>();
+    public DbSet<AiUsageRecord> AiUsageRecords => Set<AiUsageRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

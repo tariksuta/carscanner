@@ -72,7 +72,12 @@ public sealed class AccessTokenGenerator : IAccessTokenGenerator
 		var email = claimsPrincipal.FindFirst(ClaimConstants.JwtEmail)?.Value ?? string.Empty;
 		var roles = claimsPrincipal.FindAll(ClaimConstants.JwtRole).Select(c => c.Value).ToList();
 
-		IUserPrincipal userPrincipal = new UserPrincipal(userId, null, email, roles);
+		Guid? tenantId = null;
+		var tenantClaim = claimsPrincipal.FindFirst(ClaimConstants.JwtTenantId)?.Value;
+		if (!string.IsNullOrWhiteSpace(tenantClaim) && Guid.TryParse(tenantClaim, out var parsedTenant))
+			tenantId = parsedTenant;
+
+		IUserPrincipal userPrincipal = new UserPrincipal(userId, tenantId, email, roles);
 
 		return ValueTask.FromResult(userPrincipal);
 	}
@@ -96,6 +101,9 @@ public sealed class AccessTokenGenerator : IAccessTokenGenerator
 
 		if (!string.IsNullOrWhiteSpace(user.Role))
 			claims.Add(new Claim(ClaimConstants.JwtRole, user.Role));
+
+		if (user.TenantId.HasValue)
+			claims.Add(new Claim(ClaimConstants.JwtTenantId, user.TenantId.Value.ToString()));
 
 		if (additionalClaims is { Count: > 0 })
 		{

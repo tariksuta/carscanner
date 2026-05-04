@@ -10,4 +10,6 @@ public enum Module
     Employees,
     Branches,
     SystemSettings,
+    Billing,
+    PlatformTenants,
 }

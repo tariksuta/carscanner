@@ -111,6 +111,66 @@ public sealed class SmtpEmailNotificationService(
         return SendAsync(recipientEmail, recipientName, "Dobrodošli u CarScanner", body, cancellationToken);
     }
 
+    public Task SendLowBalanceAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal balance,
+        decimal threshold,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Vaš AI kredit je pao ispod podešenog praga upozorenja.</p>
+            <ul>
+              <li><strong>Trenutni balans:</strong> {balance:F2} {currency}</li>
+              <li><strong>Prag upozorenja:</strong> {threshold:F2} {currency}</li>
+            </ul>
+            <p>Preporučujemo da dopunite kredit kako biste izbjegli prekid AI analiza.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(recipientEmail, recipientName, "Upozorenje: nizak balans", body, cancellationToken);
+    }
+
+    public Task SendBalanceExhaustedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Vaš AI kredit ({currency}) je iscrpljen. AI analiza je trenutno pauzirana za vaš nalog.</p>
+            <p>Dopunite balans kako biste nastavili koristiti AI funkcije.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(recipientEmail, recipientName, "AI servis pauziran — balans je iscrpljen", body, cancellationToken);
+    }
+
+    public Task SendMonthlyCapReachedAlertAsync(
+        string recipientEmail,
+        string recipientName,
+        decimal monthSpent,
+        decimal cap,
+        string currency,
+        CancellationToken cancellationToken = default)
+    {
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Dostigli ste podešeni mjesečni limit potrošnje.</p>
+            <ul>
+              <li><strong>Mjesečna potrošnja:</strong> {monthSpent:F2} {currency}</li>
+              <li><strong>Mjesečni limit:</strong> {cap:F2} {currency}</li>
+            </ul>
+            <p>AI analize će biti blokirane do kraja mjeseca ili dok admin ne podigne limit.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(recipientEmail, recipientName, "Mjesečni limit dostignut", body, cancellationToken);
+    }
+
     private async Task SendAsync(
         string recipientEmail,
         string recipientName,

@@ -24,4 +24,5 @@ public static class ClaimConstants
 	public const string JwtRole = "role";
 	public const string JwtFirstName = "first_name";
 	public const string JwtLastName = "last_name";
+	public const string JwtTenantId = "tenant_id";
 }

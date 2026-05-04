@@ -22,6 +22,8 @@ public static class RolePermissionMatrix
                 [Module.Employees] = All,
                 [Module.Branches] = All,
                 [Module.SystemSettings] = All,
+                [Module.Billing] = View,
+                [Module.PlatformTenants] = None,
             },
             ["Manager"] = new Dictionary<Module, PermissionAction>
             {
@@ -33,6 +35,8 @@ public static class RolePermissionMatrix
                 [Module.Employees] = ViewEdit,
                 [Module.Branches] = ViewEdit,
                 [Module.SystemSettings] = View,
+                [Module.Billing] = View,
+                [Module.PlatformTenants] = None,
             },
             ["Inspektor"] = new Dictionary<Module, PermissionAction>
             {
@@ -44,6 +48,8 @@ public static class RolePermissionMatrix
                 [Module.Employees] = None,
                 [Module.Branches] = None,
                 [Module.SystemSettings] = None,
+                [Module.Billing] = None,
+                [Module.PlatformTenants] = None,
             },
             ["Recepcija"] = new Dictionary<Module, PermissionAction>
             {
@@ -55,6 +61,21 @@ public static class RolePermissionMatrix
                 [Module.Employees] = None,
                 [Module.Branches] = View,
                 [Module.SystemSettings] = None,
+                [Module.Billing] = None,
+                [Module.PlatformTenants] = None,
+            },
+            ["PlatformAdmin"] = new Dictionary<Module, PermissionAction>
+            {
+                [Module.Vehicles] = All,
+                [Module.Rentals] = All,
+                [Module.Inspections] = All,
+                [Module.DamageReports] = All,
+                [Module.Clients] = All,
+                [Module.Employees] = All,
+                [Module.Branches] = All,
+                [Module.SystemSettings] = All,
+                [Module.Billing] = All,
+                [Module.PlatformTenants] = All,
             },
         };
 
