@@ -267,4 +267,144 @@ public sealed class ConsoleEmailNotificationService(ILogger<ConsoleEmailNotifica
 
         return Task.CompletedTask;
     }
+
+    public Task SendRegistrationExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation(
+            """
+            ========== REGISTRATION EXPIRY REMINDER ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Registracija vozila ističe za {DaysUntilDue} dan(a)
+
+            Poštovani {RecipientName},
+
+            Registracija za vozilo {VehicleInfo} ističe {DueDate}
+            (još {DaysUntilDue} dan(a)). Ne propustite produženje!
+
+            Srdačan pozdrav,
+            CarScanner Team
+            ==================================================
+            """,
+            recipientEmail, recipientName, daysUntilDue,
+            recipientName, vehicleInfo, dueDate, daysUntilDue);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendInsuranceExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation(
+            """
+            ========== INSURANCE EXPIRY REMINDER ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Osiguranje ističe za {DaysUntilDue} dan(a)
+
+            Poštovani {RecipientName},
+
+            Osiguranje za vozilo {VehicleInfo} ističe {DueDate}
+            (još {DaysUntilDue} dan(a)). Obnovite na vrijeme.
+
+            Srdačan pozdrav,
+            CarScanner Team
+            ===============================================
+            """,
+            recipientEmail, recipientName, daysUntilDue,
+            recipientName, vehicleInfo, dueDate, daysUntilDue);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendServiceDueReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string description,
+        DateOnly? dueDate,
+        int? dueMileage,
+        int? currentMileage,
+        CancellationToken cancellationToken = default)
+    {
+        var dueText = BuildServiceDueText(dueDate, dueMileage, currentMileage);
+
+        logger.LogInformation(
+            """
+            ========== SERVICE DUE REMINDER ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Servis vozila uskoro - {VehicleInfo}
+
+            Poštovani {RecipientName},
+
+            Vrijeme je za servis vozila {VehicleInfo}.
+
+            {Description}
+            Dospijeva: {DueText}
+
+            Srdačan pozdrav,
+            CarScanner Team
+            ==========================================
+            """,
+            recipientEmail, recipientName, vehicleInfo,
+            recipientName, vehicleInfo, description, dueText);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendCustomReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string title,
+        string description,
+        DateOnly? dueDate,
+        CancellationToken cancellationToken = default)
+    {
+        var dueText = dueDate.HasValue ? dueDate.Value.ToString("dd.MM.yyyy") : "—";
+
+        logger.LogInformation(
+            """
+            ========== CUSTOM REMINDER ==========
+            To: {RecipientEmail} ({RecipientName})
+            Subject: Podsjetnik: {Title}
+
+            Poštovani {RecipientName},
+
+            Podsjetnik za vozilo {VehicleInfo}:
+
+            {Title}
+            {Description}
+
+            Dospijeva: {DueText}
+
+            Srdačan pozdrav,
+            CarScanner Team
+            =====================================
+            """,
+            recipientEmail, recipientName, title,
+            recipientName, vehicleInfo, title, description, dueText);
+
+        return Task.CompletedTask;
+    }
+
+    private static string BuildServiceDueText(DateOnly? dueDate, int? dueMileage, int? currentMileage)
+    {
+        if (dueDate.HasValue && dueMileage.HasValue)
+            return $"{dueDate.Value:dd.MM.yyyy} ili {dueMileage.Value} km (trenutno {currentMileage?.ToString() ?? "?"} km)";
+        if (dueDate.HasValue)
+            return dueDate.Value.ToString("dd.MM.yyyy");
+        if (dueMileage.HasValue)
+            return $"{dueMileage.Value} km (trenutno {currentMileage?.ToString() ?? "?"} km)";
+        return "—";
+    }
 }

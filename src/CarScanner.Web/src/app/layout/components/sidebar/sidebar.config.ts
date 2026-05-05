@@ -9,7 +9,15 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export const NAV_GROUPS: NavGroup[] = [
+const PLATFORM_GROUP: NavGroup = {
+  label: 'Platform',
+  items: [
+    { label: 'Tenanti', icon: 'building', route: '/platform/tenants' },
+    { label: 'Pricing planovi', icon: 'tag', route: '/platform/pricing-plans' },
+  ],
+};
+
+const TENANT_GROUPS: NavGroup[] = [
   {
     label: null,
     items: [{ label: 'Dashboard', icon: 'layout-dashboard', route: '/dashboard' }],
@@ -31,6 +39,13 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: 'Održavanje',
+    items: [
+      { label: 'Servisna knjiga', icon: 'wrench', route: '/service-book' },
+      { label: 'Podsjetnici', icon: 'bell-ring', route: '/service-book/reminders' },
+    ],
+  },
+  {
     label: 'Postavke',
     items: [
       { label: 'Poslovnice', icon: 'building-2', route: '/branches' },
@@ -39,3 +54,13 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+export function getNavGroups(role: string | null | undefined): NavGroup[] {
+  if (role === 'PlatformAdmin') {
+    return [PLATFORM_GROUP, ...TENANT_GROUPS];
+  }
+  return TENANT_GROUPS;
+}
+
+/** @deprecated use getNavGroups(role). Zadržano za back-compat. */
+export const NAV_GROUPS: NavGroup[] = TENANT_GROUPS;

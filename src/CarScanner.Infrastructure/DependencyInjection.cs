@@ -7,13 +7,16 @@ using CarScanner.Application.Abstraction.Storage;
 using CarScanner.Application.Abstraction.Tenant;
 using CarScanner.Application.Abstraction.TokenGenerator.AccessTokenGenerator;
 using CarScanner.Application.Abstraction.TokenGenerator.RefreshTokenGenerator;
+using CarScanner.Application.Abstraction.UserPrincipal;
 using CarScanner.Domain.Aggregates.ApplicationUserAggregate;
 using CarScanner.Infrastructure.AI;
 using CarScanner.Infrastructure.Authorization;
 using CarScanner.Infrastructure.Billing;
 using CarScanner.Infrastructure.Billing.BackgroundJobs;
+using CarScanner.Infrastructure.Identity;
 using CarScanner.Infrastructure.IdentityServices;
 using CarScanner.Infrastructure.Notifications;
+using CarScanner.Infrastructure.ServiceBook.BackgroundJobs;
 using CarScanner.Infrastructure.Storage;
 using CarScanner.Infrastructure.Tenant;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +32,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<ITenantProvider, JwtClaimTenantProvider>();
+        services.AddScoped<IUserPrincipal, HttpContextUserPrincipal>();
 
         services.AddSingleton(_ =>
             new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage")));
@@ -63,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IBillingService, BillingService>();
 
         services.AddHostedService<BillingMaintenanceHostedService>();
+        services.AddHostedService<MaintenanceReminderHostedService>();
 
         services.AddMemoryCache();
         services.AddScoped<IFeatureService, PricingPlanFeatureService>();

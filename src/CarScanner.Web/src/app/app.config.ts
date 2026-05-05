@@ -46,11 +46,21 @@ import {
   Building2,
   Power,
   PowerOff,
+  Wrench,
+  BellRing,
+  List,
+  Save,
+  Trash2,
+  Gauge,
+  FileBadge,
+  Tag,
+  Building,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/auth/interceptors/error.interceptor';
+import { tenantInterceptor } from './core/auth/interceptors/tenant.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -59,7 +69,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, errorInterceptor]),
+      withInterceptors([authInterceptor, tenantInterceptor, errorInterceptor]),
     ),
     {
       provide: LUCIDE_ICONS,
@@ -103,6 +113,15 @@ export const appConfig: ApplicationConfig = {
         Building2,
         Power,
         PowerOff,
+        Wrench,
+        BellRing,
+        List,
+        Save,
+        Trash2,
+        Gauge,
+        FileBadge,
+        Tag,
+        Building,
       }),
     },
   ],

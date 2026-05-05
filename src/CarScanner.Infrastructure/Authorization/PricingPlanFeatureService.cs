@@ -48,9 +48,13 @@ public sealed class PricingPlanFeatureService : IFeatureService
             ? await _pricingPlanRepository.GetByIdAsync(planId, cancellationToken)
             : null;
 
-        IReadOnlySet<Module> modules = pricingPlan is not null
+        var defaultModules = new HashSet<Module>(Enum.GetValues<Module>().Where(m => m != Module.PlatformTenants));
+
+        // Pricing plan postoji ali EnabledModules je prazan (npr. legacy zapis prije
+        // nego je polje uvedeno) — fallback na sve module umjesto da blokira sve.
+        IReadOnlySet<Module> modules = pricingPlan is { EnabledModules.Count: > 0 }
             ? pricingPlan.EnabledModules.ToHashSet()
-            : new HashSet<Module>(Enum.GetValues<Module>().Where(m => m != Module.PlatformTenants));
+            : defaultModules;
 
         _cache.Set(cacheKey, modules, CacheTtl);
         return modules;

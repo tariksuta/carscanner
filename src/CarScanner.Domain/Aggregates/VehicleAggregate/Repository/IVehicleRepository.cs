@@ -11,4 +11,10 @@ public interface IVehicleRepository : IRepository<Vehicle, Guid>
     Task<Vehicle?> GetWithImagesAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Vehicle>> GetAllWithPrimaryImageAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Vehicle>> GetAvailableVehiclesWithPrimaryImageAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cross-tenant lookup; bypasses tenant query filter. Use only from background services
+    /// or platform admin contexts that legitimately need to read across tenants.
+    /// </summary>
+    Task<Vehicle?> GetByIdAcrossTenantsAsync(Guid id, CancellationToken cancellationToken = default);
 }

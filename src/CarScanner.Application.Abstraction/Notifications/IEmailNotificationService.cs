@@ -55,4 +55,39 @@ public interface IEmailNotificationService
         decimal cap,
         string currency,
         CancellationToken cancellationToken = default);
+
+    Task SendRegistrationExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default);
+
+    Task SendInsuranceExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default);
+
+    Task SendServiceDueReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string description,
+        DateOnly? dueDate,
+        int? dueMileage,
+        int? currentMileage,
+        CancellationToken cancellationToken = default);
+
+    Task SendCustomReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string title,
+        string description,
+        DateOnly? dueDate,
+        CancellationToken cancellationToken = default);
 }

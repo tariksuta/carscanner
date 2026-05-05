@@ -53,4 +53,12 @@ public sealed class VehicleRepository(ApplicationDbContext dbContext)
             .Include(v => v.Images.Where(i => i.IsPrimary))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Vehicle?> GetByIdAcrossTenantsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .IgnoreQueryFilters()
+            .Where(v => !v.IsDeleted)
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+    }
 }
