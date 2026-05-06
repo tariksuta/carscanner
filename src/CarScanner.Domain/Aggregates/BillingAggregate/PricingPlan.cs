@@ -114,6 +114,18 @@ public sealed class PricingPlan : AggregateRoot
         return Result.Success();
     }
 
+    public Result Rename(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return Result.Failure(BillingDomainErrors.InvalidPricingPlanName);
+
+        if (name.Trim().Length > MaxNameLength)
+            return Result.Failure(BillingDomainErrors.PricingPlanNameTooLong);
+
+        Name = name.Trim();
+        return Result.Success();
+    }
+
     public void Supersede(DateTime nowUtc)
     {
         EffectiveUntilUtc = nowUtc;

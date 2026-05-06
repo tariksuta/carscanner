@@ -55,6 +55,9 @@ import {
   FileBadge,
   Tag,
   Building,
+  Star,
+  Info,
+  DollarSign,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -122,6 +125,9 @@ export const appConfig: ApplicationConfig = {
         FileBadge,
         Tag,
         Building,
+        Star,
+        Info,
+        DollarSign,
       }),
     },
   ],

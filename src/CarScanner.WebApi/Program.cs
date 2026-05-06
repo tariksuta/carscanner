@@ -108,6 +108,7 @@ app.MapBranchEndpoints();
 app.MapProfileEndpoints();
 app.MapBillingEndpoints();
 app.MapPlatformAdminBillingEndpoints();
+app.MapPlatformAdminPricingPlansEndpoints();
 app.MapServiceBookEndpoints();
 app.MapNotificationsEndpoints();
 

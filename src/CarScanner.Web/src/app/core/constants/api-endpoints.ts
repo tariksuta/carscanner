@@ -79,5 +79,12 @@ export const API_ENDPOINTS = {
     SUSPEND: (id: string) => `/platform/tenants/${id}/suspend`,
     REACTIVATE: (id: string) => `/platform/tenants/${id}/reactivate`,
     DEACTIVATE: (id: string) => `/platform/tenants/${id}/deactivate`,
+    PRICING_PLANS: '/platform/pricing-plans',
+    PRICING_PLAN_BY_ID: (id: string) => `/platform/pricing-plans/${id}`,
+    PRICING_PLAN_SET_DEFAULT: (id: string) => `/platform/pricing-plans/${id}/set-default`,
+    PRICING_PLAN_MODULES: (id: string) => `/platform/pricing-plans/${id}/modules`,
+    PRICING_PLAN_MODEL_PRICINGS: (id: string) => `/platform/pricing-plans/${id}/model-pricings`,
+    PRICING_PLAN_MODEL_PRICING: (id: string, model: string) =>
+      `/platform/pricing-plans/${id}/model-pricings/${encodeURIComponent(model)}`,
   },
 } as const;

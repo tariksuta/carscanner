@@ -20,4 +20,12 @@ export const PLATFORM_ROUTES: Routes = [
       import('./pages/pricing-plans-page.component').then((m) => m.PricingPlansPageComponent),
     data: { breadcrumb: 'Pricing planovi' },
   },
+  {
+    path: 'pricing-plans/:id',
+    loadComponent: () =>
+      import('./pages/pricing-plan-detail-page.component').then(
+        (m) => m.PricingPlanDetailPageComponent,
+      ),
+    data: { breadcrumb: 'Detalji plana' },
+  },
 ];
