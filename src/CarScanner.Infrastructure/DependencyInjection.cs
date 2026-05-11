@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using CarScanner.Application.Abstraction.AI;
 using CarScanner.Application.Abstraction.Authorization;
 using CarScanner.Application.Abstraction.Billing;
+using CarScanner.Application.Abstraction.Imaging;
 using CarScanner.Application.Abstraction.Notifications;
 using CarScanner.Application.Abstraction.Storage;
 using CarScanner.Application.Abstraction.Tenant;
@@ -15,6 +16,7 @@ using CarScanner.Infrastructure.Billing;
 using CarScanner.Infrastructure.Billing.BackgroundJobs;
 using CarScanner.Infrastructure.Identity;
 using CarScanner.Infrastructure.IdentityServices;
+using CarScanner.Infrastructure.Imaging;
 using CarScanner.Infrastructure.Notifications;
 using CarScanner.Infrastructure.ServiceBook.BackgroundJobs;
 using CarScanner.Infrastructure.Storage;
@@ -38,6 +40,11 @@ public static class DependencyInjection
             new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage")));
 
         services.AddScoped<IFileStorageService, AzureBlobStorageService>();
+
+        services
+            .AddOptions<ImageProcessingOptions>()
+            .BindConfiguration(ImageProcessingOptions.SectionName);
+        services.AddSingleton<IImageProcessingService, ImageSharpImageProcessor>();
 
         services.AddEmailNotifications(configuration);
 

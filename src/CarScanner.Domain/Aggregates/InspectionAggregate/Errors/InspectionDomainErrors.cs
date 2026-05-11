@@ -26,4 +26,7 @@ public static class InspectionDomainErrors
         DomainError.Validation(
             "Inspection.EmployeeNotFound",
             $"Inspection requires a valid employee. Employee with id '{employeeId}' was not found.");
+
+    public static DomainError InvalidPhoto(string reason) =>
+        DomainError.Validation("Inspection.InvalidPhoto", reason);
 }

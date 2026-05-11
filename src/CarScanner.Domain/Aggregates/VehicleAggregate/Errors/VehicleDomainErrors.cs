@@ -42,4 +42,7 @@ public static class VehicleDomainErrors
 
     public static DomainError ImageNotFound(Guid imageId) =>
         DomainError.NotFound("VehicleImage", imageId);
+
+    public static DomainError InvalidImage(string reason) =>
+        DomainError.Validation("Vehicle.InvalidImage", reason);
 }

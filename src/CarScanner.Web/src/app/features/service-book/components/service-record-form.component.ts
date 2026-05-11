@@ -65,7 +65,7 @@ interface FormState {
             <span>Vozilo *</span>
             <select [ngModel]="state().vehicleId" name="vehicleId"
                     [disabled]="isEdit()"
-                    (ngModelChange)="upd('vehicleId', $event)" required>
+                    (ngModelChange)="onVehicleChange($event)" required>
               <option value="">— odaberi vozilo —</option>
               @for (v of vehicles(); track v.id) {
                 <option [value]="v.id">{{ v.brand }} {{ v.model }} ({{ v.licensePlate }})</option>
@@ -90,7 +90,12 @@ interface FormState {
           </label>
 
           <label class="cs-field">
-            <span>Kilometraža (km) *</span>
+            <span>
+              Kilometraža (km) *
+              @if (selectedVehicleCurrentMileage() !== null) {
+                <em class="cs-field-hint">trenutno: {{ selectedVehicleCurrentMileage() | number }} km</em>
+              }
+            </span>
             <input type="number" min="0" [ngModel]="state().mileageAtService" name="mileage"
                    (ngModelChange)="upd('mileageAtService', +$event)" required />
           </label>
@@ -210,6 +215,15 @@ interface FormState {
         font-size: 12px;
         color: var(--cs-text-tertiary);
         font-weight: 600;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .cs-field-hint {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 11px;
+        color: var(--cs-accent);
       }
       .cs-field input,
       .cs-field select,
@@ -275,6 +289,13 @@ export class ServiceRecordFormComponent implements OnInit {
     () => !!this.state().vehicleId && !!this.state().serviceDate && this.state().cost >= 0,
   );
 
+  protected readonly selectedVehicleCurrentMileage = computed<number | null>(() => {
+    const id = this.state().vehicleId;
+    if (!id) return null;
+    const vehicle = this.vehicles().find((v) => v.id === id);
+    return vehicle?.currentMileage ?? null;
+  });
+
   protected readonly typeOptions = Object.entries(SERVICE_RECORD_TYPE_LABELS).map(([k, v]) => ({
     value: Number(k) as ServiceRecordType,
     label: v,
@@ -282,7 +303,12 @@ export class ServiceRecordFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.vehicleService.getAll({ page: 1, pageSize: 100 }).subscribe({
-      next: (res) => this.vehicles.set(res.items),
+      next: (res) => {
+        this.vehicles.set(res.items);
+        // Vehicles tek sad stigli — ako je vec selektovan vehicleId (preko initialVehicleId
+        // ili jer nije edit mode), popuni mileage iz kilometraže odabranog vozila.
+        this.maybeAutoFillMileage();
+      },
     });
 
     const initVehicle = this.initialVehicleId();
@@ -306,6 +332,27 @@ export class ServiceRecordFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  protected onVehicleChange(vehicleId: string): void {
+    this.upd('vehicleId', vehicleId);
+    this.maybeAutoFillMileage();
+  }
+
+  /**
+   * Auto-popuni mileage iz Vehicle.currentMileage kad korisnik izabere vozilo.
+   * Preskoči ako: (a) edit mode (poštuj postojeću vrijednost),
+   * (b) korisnik je već ručno upisao vrijednost veću od trenutne kilometraže.
+   */
+  private maybeAutoFillMileage(): void {
+    if (this.isEdit()) return;
+    const vehicleId = this.state().vehicleId;
+    if (!vehicleId) return;
+    const vehicle = this.vehicles().find((v) => v.id === vehicleId);
+    if (!vehicle) return;
+    const currentValue = this.state().mileageAtService;
+    if (currentValue >= vehicle.currentMileage) return;
+    this.upd('mileageAtService', vehicle.currentMileage);
   }
 
   protected upd<K extends keyof FormState>(key: K, value: FormState[K]): void {
