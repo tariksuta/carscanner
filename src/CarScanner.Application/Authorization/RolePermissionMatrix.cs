@@ -24,6 +24,7 @@ public static class RolePermissionMatrix
                 [Module.SystemSettings] = All,
                 [Module.Billing] = View,
                 [Module.PlatformTenants] = None,
+                [Module.ServiceBook] = All,
             },
             ["Manager"] = new Dictionary<Module, PermissionAction>
             {
@@ -37,6 +38,7 @@ public static class RolePermissionMatrix
                 [Module.SystemSettings] = View,
                 [Module.Billing] = View,
                 [Module.PlatformTenants] = None,
+                [Module.ServiceBook] = ViewEdit,
             },
             ["Inspektor"] = new Dictionary<Module, PermissionAction>
             {
@@ -50,6 +52,7 @@ public static class RolePermissionMatrix
                 [Module.SystemSettings] = None,
                 [Module.Billing] = None,
                 [Module.PlatformTenants] = None,
+                [Module.ServiceBook] = View,
             },
             ["Recepcija"] = new Dictionary<Module, PermissionAction>
             {
@@ -63,6 +66,7 @@ public static class RolePermissionMatrix
                 [Module.SystemSettings] = None,
                 [Module.Billing] = None,
                 [Module.PlatformTenants] = None,
+                [Module.ServiceBook] = View,
             },
             ["PlatformAdmin"] = new Dictionary<Module, PermissionAction>
             {
@@ -76,6 +80,7 @@ public static class RolePermissionMatrix
                 [Module.SystemSettings] = All,
                 [Module.Billing] = All,
                 [Module.PlatformTenants] = All,
+                [Module.ServiceBook] = All,
             },
         };
 

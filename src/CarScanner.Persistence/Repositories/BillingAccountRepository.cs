@@ -53,4 +53,11 @@ public sealed class BillingAccountRepository(ApplicationDbContext dbContext)
                         && a.LowBalanceAlertSentForCurrentDip)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<bool> AnyWithPricingPlanAsync(
+        Guid pricingPlanId,
+        CancellationToken cancellationToken = default)
+    {
+        return DbSet.AnyAsync(a => a.CurrentPricingPlanId == pricingPlanId, cancellationToken);
+    }
 }

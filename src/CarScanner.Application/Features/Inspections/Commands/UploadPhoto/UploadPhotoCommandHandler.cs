@@ -1,3 +1,4 @@
+using CarScanner.Application.Abstraction.Imaging;
 using CarScanner.Application.Abstraction.Storage;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Errors;
 using CarScanner.Domain.Aggregates.InspectionAggregate.Repository;
@@ -8,7 +9,8 @@ namespace CarScanner.Application.Features.Inspections.Commands.UploadPhoto;
 
 public sealed class UploadPhotoCommandHandler(
     IVehicleInspectionRepository inspectionRepository,
-    IFileStorageService fileStorageService)
+    IFileStorageService fileStorageService,
+    IImageProcessingService imageProcessingService)
     : ICommandHandler<UploadPhotoCommand, Result<UploadPhotoCommandResult>>
 {
     public async Task<Result<UploadPhotoCommandResult>> Handle(
@@ -19,12 +21,22 @@ public sealed class UploadPhotoCommandHandler(
         if (inspection is null)
             return Result.Failure<UploadPhotoCommandResult>(InspectionDomainErrors.NotFound(request.InspectionId));
 
-        var fileName = $"{inspection.Id}/{request.Position}_{Guid.NewGuid()}{Path.GetExtension(request.FileName)}";
+        ProcessedImage processed;
+        try
+        {
+            processed = await imageProcessingService.ProcessAsync(request.PhotoStream, cancellationToken);
+        }
+        catch (ImageProcessingException ex)
+        {
+            return Result.Failure<UploadPhotoCommandResult>(InspectionDomainErrors.InvalidPhoto(ex.Message));
+        }
+
+        var fileName = $"{inspection.Id}/{request.Position}_{Guid.NewGuid()}{processed.Extension}";
 
         var photoUrl = await fileStorageService.UploadFileAsync(
-            request.PhotoStream,
+            processed.Stream,
             fileName,
-            request.ContentType,
+            processed.ContentType,
             "inspection-photos",
             cancellationToken);
 

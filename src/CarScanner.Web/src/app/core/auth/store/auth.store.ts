@@ -28,6 +28,7 @@ export const AuthStore = signalStore(
   withState(initialState),
   withComputed((store) => ({
     isAuthenticated: computed(() => store.user() !== null),
+    isPlatformAdmin: computed(() => store.user()?.role === 'PlatformAdmin'),
   })),
   withMethods(
     (
@@ -67,7 +68,8 @@ export const AuthStore = signalStore(
                     next: (profile) => patchState(store, { profileImageUrl: profile.profileImageUrl ?? null }),
                     error: () => {},
                   });
-                  router.navigate(['/dashboard']).then((result) => {
+                  const target = user.role === 'PlatformAdmin' ? '/platform/tenants' : '/dashboard';
+                  router.navigate([target]).then((result) => {
                     console.log('Navigation result:', result);
                   });
                 },

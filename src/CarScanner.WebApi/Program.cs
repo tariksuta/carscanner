@@ -1,4 +1,5 @@
 using CarScanner.Application;
+using CarScanner.Application.Abstraction.Notifications;
 using CarScanner.Infrastructure;
 using CarScanner.Infrastructure.IdentityServices;
 using CarScanner.Persistence;
@@ -7,13 +8,17 @@ using CarScanner.WebApi.Endpoints.Billing;
 using CarScanner.WebApi.Endpoints.Branches;
 using CarScanner.WebApi.Endpoints.Clients;
 using CarScanner.WebApi.Endpoints.DamageReports;
+using CarScanner.WebApi.Endpoints.DevTools;
 using CarScanner.WebApi.Endpoints.Inspections;
+using CarScanner.WebApi.Endpoints.Notifications;
 using CarScanner.WebApi.Endpoints.Rentals;
 using CarScanner.WebApi.Endpoints.Employees;
 using CarScanner.WebApi.Endpoints.PlatformAdmin;
 using CarScanner.WebApi.Endpoints.Profile;
+using CarScanner.WebApi.Endpoints.ServiceBook;
 using CarScanner.WebApi.Endpoints.Vehicles;
 using CarScanner.WebApi.Extensions;
+using CarScanner.WebApi.Hubs;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +27,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationPusher, SignalRNotificationPusher>();
 
 var authConfig = builder
 	.Configuration
@@ -101,5 +109,15 @@ app.MapBranchEndpoints();
 app.MapProfileEndpoints();
 app.MapBillingEndpoints();
 app.MapPlatformAdminBillingEndpoints();
+app.MapPlatformAdminPricingPlansEndpoints();
+app.MapServiceBookEndpoints();
+app.MapNotificationsEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevNotificationsEndpoints();
+}
+
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

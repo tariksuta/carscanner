@@ -171,6 +171,114 @@ public sealed class SmtpEmailNotificationService(
         return SendAsync(recipientEmail, recipientName, "Mjesečni limit dostignut", body, cancellationToken);
     }
 
+    public Task SendRegistrationExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default)
+    {
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Registracija za vozilo <strong>{vehicleInfo}</strong> ističe <strong>{dueDate:dd.MM.yyyy}</strong> (još {daysUntilDue} dan(a)).</p>
+            <p>Ne propustite produženje kako biste izbjegli prekid korištenja vozila.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(
+            recipientEmail, recipientName,
+            $"Registracija ističe za {daysUntilDue} dan(a) - {vehicleInfo}",
+            body, cancellationToken);
+    }
+
+    public Task SendInsuranceExpiryReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        DateOnly dueDate,
+        int daysUntilDue,
+        CancellationToken cancellationToken = default)
+    {
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Osiguranje za vozilo <strong>{vehicleInfo}</strong> ističe <strong>{dueDate:dd.MM.yyyy}</strong> (još {daysUntilDue} dan(a)).</p>
+            <p>Obnovite osiguranje na vrijeme.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(
+            recipientEmail, recipientName,
+            $"Osiguranje ističe za {daysUntilDue} dan(a) - {vehicleInfo}",
+            body, cancellationToken);
+    }
+
+    public Task SendServiceDueReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string description,
+        DateOnly? dueDate,
+        int? dueMileage,
+        int? currentMileage,
+        CancellationToken cancellationToken = default)
+    {
+        var dueText = BuildServiceDueText(dueDate, dueMileage, currentMileage);
+
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Vrijeme je za servis vozila <strong>{vehicleInfo}</strong>.</p>
+            <ul>
+              <li><strong>Opis:</strong> {description}</li>
+              <li><strong>Dospijeva:</strong> {dueText}</li>
+            </ul>
+            <p>Zakazujte servis na vrijeme kako biste održali vozilo u ispravnom stanju.</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(
+            recipientEmail, recipientName,
+            $"Servis vozila uskoro - {vehicleInfo}",
+            body, cancellationToken);
+    }
+
+    public Task SendCustomReminderAsync(
+        string recipientEmail,
+        string recipientName,
+        string vehicleInfo,
+        string title,
+        string description,
+        DateOnly? dueDate,
+        CancellationToken cancellationToken = default)
+    {
+        var dueText = dueDate.HasValue ? dueDate.Value.ToString("dd.MM.yyyy") : "—";
+
+        var body = $"""
+            <p>Poštovani {recipientName},</p>
+            <p>Podsjetnik za vozilo <strong>{vehicleInfo}</strong>:</p>
+            <h3>{title}</h3>
+            <p>{description}</p>
+            <p><strong>Dospijeva:</strong> {dueText}</p>
+            <p>Srdačan pozdrav,<br/>CarScanner Team</p>
+            """;
+
+        return SendAsync(
+            recipientEmail, recipientName,
+            $"Podsjetnik: {title}",
+            body, cancellationToken);
+    }
+
+    private static string BuildServiceDueText(DateOnly? dueDate, int? dueMileage, int? currentMileage)
+    {
+        if (dueDate.HasValue && dueMileage.HasValue)
+            return $"{dueDate.Value:dd.MM.yyyy} ili {dueMileage.Value} km (trenutno {currentMileage?.ToString() ?? "?"} km)";
+        if (dueDate.HasValue)
+            return dueDate.Value.ToString("dd.MM.yyyy");
+        if (dueMileage.HasValue)
+            return $"{dueMileage.Value} km (trenutno {currentMileage?.ToString() ?? "?"} km)";
+        return "—";
+    }
+
     private async Task SendAsync(
         string recipientEmail,
         string recipientName,

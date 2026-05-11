@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { noAuthGuard } from './core/auth/guards/no-auth.guard';
+import { platformAdminGuard } from './core/auth/guards/platform-admin.guard';
 import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
 
 export const routes: Routes = [
@@ -77,6 +78,21 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/billing/billing.routes').then((m) => m.BILLING_ROUTES),
         data: { breadcrumb: 'Naplata' },
+      },
+      {
+        path: 'service-book',
+        loadChildren: () =>
+          import('./features/service-book/service-book.routes').then(
+            (m) => m.SERVICE_BOOK_ROUTES,
+          ),
+        data: { breadcrumb: 'Servisna knjiga' },
+      },
+      {
+        path: 'platform',
+        loadChildren: () =>
+          import('./features/platform/platform.routes').then((m) => m.PLATFORM_ROUTES),
+        canActivate: [platformAdminGuard],
+        data: { breadcrumb: 'Platform' },
       },
     ],
   },

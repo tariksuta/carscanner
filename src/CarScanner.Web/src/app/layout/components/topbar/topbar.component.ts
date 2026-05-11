@@ -3,27 +3,34 @@ import { LucideAngularModule } from 'lucide-angular';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { UserMenuComponent } from '../user-menu/user-menu.component';
 import { BalanceIndicatorComponent } from '../balance-indicator/balance-indicator.component';
+import { NotificationBellComponent } from '../../../features/notifications/components/notification-bell.component';
+import { TenantSwitcherComponent } from './tenant-switcher.component';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [BreadcrumbComponent, UserMenuComponent, LucideAngularModule, BalanceIndicatorComponent],
+  imports: [
+    BreadcrumbComponent,
+    UserMenuComponent,
+    LucideAngularModule,
+    BalanceIndicatorComponent,
+    NotificationBellComponent,
+    TenantSwitcherComponent,
+  ],
   template: `
     <header class="cs-topbar">
       <div class="cs-topbar-left">
         <app-breadcrumb />
       </div>
       <div class="cs-topbar-right">
+        <app-tenant-switcher />
         <button type="button" class="cs-cmd-btn" aria-label="Pretraga (⌘K)">
           <lucide-icon name="search" [size]="14" />
           <span>Pretraži…</span>
           <span class="cs-kbd">⌘K</span>
         </button>
         <app-balance-indicator />
-        <button type="button" class="cs-icon-btn" aria-label="Obavijesti">
-          <lucide-icon name="bell" [size]="16" />
-          <span class="cs-bell-dot"></span>
-        </button>
+        <app-notification-bell />
         <app-user-menu />
       </div>
     </header>

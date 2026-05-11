@@ -12,4 +12,5 @@ public enum Module
     SystemSettings,
     Billing,
     PlatformTenants,
+    ServiceBook,
 }

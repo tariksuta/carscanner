@@ -21,4 +21,8 @@ public interface IBillingAccountRepository : IRepository<BillingAccount, Guid>
 
     Task<IReadOnlyList<BillingAccount>> GetAlertableLowBalanceAccountsAsync(
         CancellationToken cancellationToken = default);
+
+    Task<bool> AnyWithPricingPlanAsync(
+        Guid pricingPlanId,
+        CancellationToken cancellationToken = default);
 }

@@ -2,7 +2,7 @@ import { Component, inject, signal, HostListener, computed } from '@angular/core
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { SidebarNavItemComponent } from './sidebar-nav-item.component';
-import { NAV_GROUPS } from './sidebar.config';
+import { getNavGroups } from './sidebar.config';
 import { AuthStore } from '../../../core/auth/store/auth.store';
 
 @Component({
@@ -31,7 +31,7 @@ import { AuthStore } from '../../../core/auth/store/auth.store';
       </div>
 
       <nav class="cs-sidebar-nav">
-        @for (group of navGroups; track group.label) {
+        @for (group of navGroups(); track group.label) {
           @if (group.label && !collapsed()) {
             <div class="cs-nav-group-label">{{ group.label }}</div>
           }
@@ -265,7 +265,7 @@ import { AuthStore } from '../../../core/auth/store/auth.store';
 export class SidebarComponent {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
-  readonly navGroups = NAV_GROUPS;
+  readonly navGroups = computed(() => getNavGroups(this.authStore.user()?.role));
   readonly dropdownOpen = signal(false);
   readonly collapsed = signal(false);
 

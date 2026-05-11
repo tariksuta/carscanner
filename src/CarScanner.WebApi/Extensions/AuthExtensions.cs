@@ -46,6 +46,19 @@ public static class AuthExtensions
 						context.Response.Headers.TryAdd("x-token-expired", "true");
 					}
 					return Task.CompletedTask;
+				},
+				OnMessageReceived = context =>
+				{
+					// SignalR WebSocket connection ne moze postaviti Authorization header,
+					// pa token mora doci kao query string (?access_token=...).
+					var path = context.HttpContext.Request.Path;
+					if (path.StartsWithSegments("/hubs"))
+					{
+						var queryToken = context.Request.Query["access_token"];
+						if (!string.IsNullOrEmpty(queryToken))
+							context.Token = queryToken;
+					}
+					return Task.CompletedTask;
 				}
 			};
 		});

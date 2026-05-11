@@ -45,4 +45,7 @@ public static class ApplicationUserDomainErrors
 
     public static readonly DomainError LastNameTooLong =
         DomainError.Validation("ApplicationUser.LastNameTooLong", "Last name cannot exceed 100 characters.");
+
+    public static DomainError InvalidProfileImage(string reason) =>
+        DomainError.Validation("ApplicationUser.InvalidProfileImage", reason);
 }

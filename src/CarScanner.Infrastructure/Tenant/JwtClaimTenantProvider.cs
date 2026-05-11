@@ -34,8 +34,7 @@ public sealed class JwtClaimTenantProvider : ITenantProvider
             var isPlatformAdmin = user?.IsInRole(PlatformAdminRole) == true;
 
             // PlatformAdmin: header takes priority so they can target a specific tenant
-            // when calling tenant-scoped admin endpoints. Without a header, they have no
-            // implicit tenant — most PlatformAdmin endpoints query across tenants anyway.
+            // when calling tenant-scoped endpoints. Without a header, no implicit tenant.
             if (isPlatformAdmin)
             {
                 if (httpContext.Request.Headers.TryGetValue(TenantHeaderName, out var adminHeader)
