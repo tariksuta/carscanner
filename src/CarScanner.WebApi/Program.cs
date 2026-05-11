@@ -8,6 +8,7 @@ using CarScanner.WebApi.Endpoints.Billing;
 using CarScanner.WebApi.Endpoints.Branches;
 using CarScanner.WebApi.Endpoints.Clients;
 using CarScanner.WebApi.Endpoints.DamageReports;
+using CarScanner.WebApi.Endpoints.DevTools;
 using CarScanner.WebApi.Endpoints.Inspections;
 using CarScanner.WebApi.Endpoints.Notifications;
 using CarScanner.WebApi.Endpoints.Rentals;
@@ -111,6 +112,11 @@ app.MapPlatformAdminBillingEndpoints();
 app.MapPlatformAdminPricingPlansEndpoints();
 app.MapServiceBookEndpoints();
 app.MapNotificationsEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevNotificationsEndpoints();
+}
 
 app.MapHub<NotificationHub>("/hubs/notifications");
 
